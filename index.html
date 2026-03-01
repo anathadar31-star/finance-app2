@@ -7,15 +7,19 @@
 <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
 
 <style>
-body{
-direction:rtl;
-text-align:right;
-font-family:Arial,sans-serif;
+html, body {
+direction: rtl;
+text-align: right;
+font-family: Arial, sans-serif;
 background:#f4f6f8;
 margin:0;
 padding:20px;
 }
-h1{text-align:center;}
+
+h1{
+text-align:center;
+}
+
 .card{
 background:white;
 padding:15px;
@@ -23,6 +27,7 @@ border-radius:12px;
 box-shadow:0 4px 10px rgba(0,0,0,0.08);
 margin-top:20px;
 }
+
 button{
 padding:10px 15px;
 border:none;
@@ -32,20 +37,45 @@ background:#111827;
 color:white;
 font-weight:bold;
 }
+
 table{
 width:100%;
 border-collapse:collapse;
 margin-top:15px;
+direction:rtl;
 }
-th,td{
+
+thead, tbody, tr {
+direction:rtl;
+}
+
+th, td{
 padding:8px;
 border-bottom:1px solid #ddd;
 text-align:right;
+white-space:normal;
+word-break:break-word;
 }
-th{background:#f1f1f1;}
-.income{color:green;font-weight:bold;}
-.expense{color:red;font-weight:bold;}
-.total{font-weight:bold;font-size:18px;margin-top:10px;}
+
+th{
+background:#f1f1f1;
+}
+
+.income{
+color:green;
+font-weight:bold;
+}
+
+.expense{
+color:red;
+font-weight:bold;
+}
+
+.total{
+font-weight:bold;
+font-size:18px;
+margin-top:10px;
+}
 </style>
 </head>
 
@@ -104,7 +134,6 @@ d.setDate(d.getDate()+serial);
 return d.toLocaleDateString("he-IL");
 }
 
-/* ---- מציאת שורת תחילת תנועות לפי חובה/זכות ---- */
 let startIndex=0;
 
 for(let i=0;i<rows.length;i++){
@@ -116,7 +145,6 @@ break;
 }
 }
 
-/* ---- קריאה רק משם ---- */
 for(let i=startIndex;i<rows.length;i++){
 
 const r=rows[i];
