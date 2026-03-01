@@ -104,34 +104,39 @@ d.setDate(d.getDate()+serial);
 return d.toLocaleDateString("he-IL");
 }
 
-/* --- מציאת שורת הכותרת האמיתית --- */
+/* ---- מציאת שורת תחילת תנועות לפי חובה/זכות ---- */
 let startIndex=0;
+
 for(let i=0;i<rows.length;i++){
-if(rows[i] && rows[i][0]==="תאריך"){
+if(rows[i] && rows[i][4]!==undefined && rows[i][5]!==undefined){
+if(rows[i][4]==="חובה" || rows[i][5]==="זכות"){
 startIndex=i+1;
 break;
 }
 }
+}
 
-/* --- קריאת תנועות רק מהשורה הנכונה --- */
+/* ---- קריאה רק משם ---- */
 for(let i=startIndex;i<rows.length;i++){
 
 const r=rows[i];
 if(!r) continue;
+
+const debit=parseFloat(r[4]);
+const credit=parseFloat(r[5]);
+
+if(isNaN(debit) && isNaN(credit)) continue;
 
 let date=r[0];
 if(typeof date==="number") date=excelDate(date);
 
 const type=r[1]||"";
 const details=r[2]||"";
-const debit=parseFloat(r[4])||0;
-const credit=parseFloat(r[5])||0;
 
 let amount=0;
-if(credit>0) amount=Math.abs(credit);
-else if(debit>0) amount=-Math.abs(debit);
-
-if(amount===0) continue;
+if(!isNaN(credit) && credit>0) amount=Math.abs(credit);
+else if(!isNaN(debit) && debit>0) amount=-Math.abs(debit);
+else continue;
 
 total+=amount;
 
