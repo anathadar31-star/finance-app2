@@ -7,18 +7,16 @@
 <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
 
 <style>
-html, body {
-direction: rtl;
-text-align: right;
-font-family: Arial, sans-serif;
+body{
+direction:rtl;
+text-align:right;
+font-family:Arial,sans-serif;
 background:#f4f6f8;
 margin:0;
 padding:20px;
 }
 
-h1{
-text-align:center;
-}
+h1{text-align:center;}
 
 .card{
 background:white;
@@ -38,43 +36,37 @@ color:white;
 font-weight:bold;
 }
 
-table{
-width:100%;
-border-collapse:collapse;
-margin-top:15px;
-direction:rtl;
+.transaction{
+background:white;
+padding:12px;
+border-radius:10px;
+margin-top:10px;
+box-shadow:0 2px 6px rgba(0,0,0,0.06);
 }
 
-thead, tbody, tr {
-direction:rtl;
+.row{
+display:flex;
+justify-content:space-between;
+margin-bottom:6px;
 }
 
-th, td{
-padding:8px;
-border-bottom:1px solid #ddd;
-text-align:right;
-white-space:normal;
-word-break:break-word;
+.label{
+font-size:13px;
+color:#666;
 }
 
-th{
-background:#f1f1f1;
-}
-
-.income{
-color:green;
+.value{
 font-weight:bold;
 }
 
-.expense{
-color:red;
-font-weight:bold;
-}
+.income{color:green;}
+.expense{color:red;}
 
 .total{
 font-weight:bold;
-font-size:18px;
-margin-top:10px;
+font-size:20px;
+margin-top:15px;
+text-align:center;
 }
 </style>
 </head>
@@ -88,19 +80,9 @@ margin-top:10px;
 <button onclick="loadFile()">טען קובץ</button>
 <div id="status"></div>
 <div class="total" id="total"></div>
-
-<table>
-<thead>
-<tr>
-<th>תאריך</th>
-<th>סוג תנועה</th>
-<th>פרטים</th>
-<th>סכום</th>
-</tr>
-</thead>
-<tbody id="tableBody"></tbody>
-</table>
 </div>
+
+<div id="transactions"></div>
 
 <script>
 
@@ -124,8 +106,8 @@ reader.readAsArrayBuffer(input.files[0]);
 
 function display(rows){
 
-const tbody=document.getElementById("tableBody");
-tbody.innerHTML="";
+const container=document.getElementById("transactions");
+container.innerHTML="";
 let total=0;
 
 function excelDate(serial){
@@ -135,7 +117,6 @@ return d.toLocaleDateString("he-IL");
 }
 
 let startIndex=0;
-
 for(let i=0;i<rows.length;i++){
 if(rows[i] && rows[i][4]!==undefined && rows[i][5]!==undefined){
 if(rows[i][4]==="חובה" || rows[i][5]==="זכות"){
@@ -168,19 +149,15 @@ else continue;
 
 total+=amount;
 
-let cls="";
-if(amount>0) cls="income";
-if(amount<0) cls="expense";
+let cls=amount>0?"income":"expense";
 
-tbody.innerHTML+=`
-<tr>
-<td>${date||""}</td>
-<td>${type}</td>
-<td>${details}</td>
-<td class="${cls}">
-${amount.toLocaleString("he-IL")}
-</td>
-</tr>`;
+container.innerHTML+=`
+<div class="transaction">
+<div class="row"><span class="label">תאריך</span><span class="value">${date||""}</span></div>
+<div class="row"><span class="label">סוג</span><span class="value">${type}</span></div>
+<div class="row"><span class="label">פרטים</span><span>${details}</span></div>
+<div class="row"><span class="label">סכום</span><span class="value ${cls}">${amount.toLocaleString("he-IL")}</span></div>
+</div>`;
 }
 
 document.getElementById("total").innerText=
