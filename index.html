@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="he">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,16 +7,79 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <style>
-body {font-family: Arial; background:#f4f6f8; margin:0; padding:20px;}
-h1 {text-align:center;}
-.card {background:white; padding:15px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.08); margin-top:20px;}
-button {padding:10px 15px; border:none; border-radius:8px; cursor:pointer; background:#111827; color:white; font-weight:bold;}
-table {width:100%; border-collapse:collapse; margin-top:15px;}
-th, td {padding:8px; border-bottom:1px solid #ddd; text-align:right;}
-th {background:#f1f1f1;}
-.income {color:green; font-weight:bold;}
-.expense {color:red; font-weight:bold;}
-.total {font-weight:bold; font-size:18px; margin-top:10px;}
+html {
+direction: rtl;
+}
+
+body {
+direction: rtl;
+text-align: right;
+font-family: Arial, sans-serif;
+background:#f4f6f8;
+margin:0;
+padding:20px;
+}
+
+h1 {
+text-align:center;
+margin-bottom:20px;
+}
+
+.card {
+background:white;
+padding:15px;
+border-radius:12px;
+box-shadow:0 4px 10px rgba(0,0,0,0.08);
+margin-top:20px;
+}
+
+input {
+direction: rtl;
+margin-left:10px;
+}
+
+button {
+padding:10px 15px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+background:#111827;
+color:white;
+font-weight:bold;
+}
+
+table {
+width:100%;
+border-collapse:collapse;
+margin-top:15px;
+direction: rtl;
+}
+
+thead {
+background:#f1f1f1;
+}
+
+th, td {
+padding:8px;
+border-bottom:1px solid #ddd;
+text-align:right;
+}
+
+.income {
+color:green;
+font-weight:bold;
+}
+
+.expense {
+color:red;
+font-weight:bold;
+}
+
+.total {
+font-weight:bold;
+font-size:18px;
+margin-top:10px;
+}
 </style>
 </head>
 
@@ -99,35 +162,4 @@ const credit = parseFloat(row[5]) || 0;
 
 let amount = 0;
 
-if (credit > 0) amount = Math.abs(credit);
-else if (debit > 0) amount = -Math.abs(debit);
-
-if (amount !== 0) total += amount;
-
-let className = "";
-if (amount > 0) className = "income";
-if (amount < 0) className = "expense";
-
-tbody.innerHTML += `
-<tr>
-<td>${date}</td>
-<td>${type}</td>
-<td>${details}</td>
-<td class="${className}">
-${amount !== 0 ? amount.toLocaleString("he-IL") : ""}
-</td>
-</tr>
-`;
-}
-
-document.getElementById("total").innerText =
-"מאזן כולל: ₪ " + total.toLocaleString("he-IL");
-
-document.getElementById("status").innerText =
-"הטעינה הסתיימה";
-}
-
-</script>
-
-</body>
-</html>
+if (credit >
