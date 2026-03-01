@@ -14,6 +14,8 @@ button {padding:10px 15px; border:none; border-radius:8px; cursor:pointer; backg
 table {width:100%; border-collapse:collapse; margin-top:15px;}
 th, td {padding:8px; border-bottom:1px solid #ddd; text-align:right;}
 th {background:#f1f1f1;}
+.income {color:green; font-weight:bold;}
+.expense {color:red; font-weight:bold;}
 .total {font-weight:bold; font-size:18px; margin-top:10px;}
 </style>
 </head>
@@ -32,7 +34,8 @@ th {background:#f1f1f1;}
 <thead>
 <tr>
 <th>תאריך</th>
-<th>תיאור</th>
+<th>סוג תנועה</th>
+<th>פרטים</th>
 <th>סכום</th>
 </tr>
 </thead>
@@ -64,6 +67,7 @@ reader.readAsArrayBuffer(file);
 }
 
 function displayData(rows) {
+
 const tbody = document.getElementById("tableBody");
 tbody.innerHTML = "";
 let total = 0;
@@ -75,6 +79,7 @@ return excelEpoch.toLocaleDateString("he-IL");
 }
 
 for (let i = 1; i < rows.length; i++) {
+
 const row = rows[i];
 if (!row) continue;
 
@@ -87,21 +92,30 @@ date = excelDateToJSDate(dateRaw);
 date = dateRaw || "";
 }
 
-const desc = row[2] || "";
+const type = row[1] || "";
+const details = row[2] || "";
 const debit = parseFloat(row[4]) || 0;
 const credit = parseFloat(row[5]) || 0;
 
 let amount = 0;
-if (credit > 0) amount = credit;
-else if (debit > 0) amount = -debit;
+
+if (credit > 0) amount = Math.abs(credit);
+else if (debit > 0) amount = -Math.abs(debit);
 
 if (amount !== 0) total += amount;
+
+let className = "";
+if (amount > 0) className = "income";
+if (amount < 0) className = "expense";
 
 tbody.innerHTML += `
 <tr>
 <td>${date}</td>
-<td>${desc}</td>
-<td>${amount !== 0 ? amount.toLocaleString("he-IL") : ""}</td>
+<td>${type}</td>
+<td>${details}</td>
+<td class="${className}">
+${amount !== 0 ? amount.toLocaleString("he-IL") : ""}
+</td>
 </tr>
 `;
 }
