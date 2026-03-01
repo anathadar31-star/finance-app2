@@ -1,23 +1,82 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>מנהל כספים אישי</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<style>
+body {font-family: Arial; background:#f4f6f8; margin:0; padding:20px;}
+h1 {text-align:center;}
+.card {background:white; padding:15px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.08); margin-top:20px;}
+button {padding:10px 15px; border:none; border-radius:8px; cursor:pointer; background:#111827; color:white; font-weight:bold;}
+table {width:100%; border-collapse:collapse; margin-top:15px;}
+th, td {padding:8px; border-bottom:1px solid #ddd; text-align:right;}
+th {background:#f1f1f1;}
+.total {font-weight:bold; font-size:18px; margin-top:10px;}
+</style>
+</head>
+
+<body>
+
+<h1>מנהל כספים אישי</h1>
+
+<div class="card">
+<input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+<button onclick="loadFile()">טען קובץ</button>
+<div id="status"></div>
+<div class="total" id="total"></div>
+
+<table>
+<thead>
+<tr>
+<th>תאריך</th>
+<th>תיאור</th>
+<th>סכום</th>
+</tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
+</div>
+
+<script>
+
+function loadFile() {
+const input = document.getElementById('fileInput');
+if (!input.files.length) {
+document.getElementById('status').innerText = "בחרי קובץ קודם";
+return;
+}
+
+const file = input.files[0];
+const reader = new FileReader();
+
+reader.onload = function(e) {
+const data = new Uint8Array(e.target.result);
+const workbook = XLSX.read(data, {type: 'array'});
+const sheet = workbook.Sheets[workbook.SheetNames[0]];
+const rows = XLSX.utils.sheet_to_json(sheet, {header:1});
+displayData(rows);
+};
+
+reader.readAsArrayBuffer(file);
+}
+
 function displayData(rows) {
 const tbody = document.getElementById("tableBody");
 tbody.innerHTML = "";
 let total = 0;
 
-// פונקציה להמרת תאריך אקסל
 function excelDateToJSDate(serial) {
-const utc_days  = Math.floor(serial - 25569);
-const utc_value = utc_days * 86400;                                        
-const date_info = new Date(utc_value * 1000);
-return date_info.toLocaleDateString("he-IL");
+const excelEpoch = new Date(1899, 11, 30);
+excelEpoch.setDate(excelEpoch.getDate() + serial);
+return excelEpoch.toLocaleDateString("he-IL");
 }
 
 for (let i = 1; i < rows.length; i++) {
-
 const row = rows[i];
 if (!row) continue;
-
-// דילוג על שורות כותרת
-if (row[0] === "תאריך" || row[1] === "הפעולה") continue;
 
 let dateRaw = row[0];
 let date = "";
@@ -33,12 +92,8 @@ const debit = parseFloat(row[4]) || 0;
 const credit = parseFloat(row[5]) || 0;
 
 let amount = 0;
-
-if (credit > 0) {
-amount = credit;
-} else if (debit > 0) {
-amount = -debit;
-}
+if (credit > 0) amount = credit;
+else if (debit > 0) amount = -debit;
 
 if (amount !== 0) total += amount;
 
@@ -57,3 +112,8 @@ document.getElementById("total").innerText =
 document.getElementById("status").innerText =
 "הטעינה הסתיימה";
 }
+
+</script>
+
+</body>
+</html>
