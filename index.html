@@ -4,23 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>מנהל כספים אישי</title>
-
 <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
 
 <style>
 body{
 direction:rtl;
 text-align:right;
-font-family:Arial, sans-serif;
+font-family:Arial,sans-serif;
 background:#f4f6f8;
 margin:0;
 padding:20px;
 }
-
-h1{
-text-align:center;
-}
-
+h1{text-align:center;}
 .card{
 background:white;
 padding:15px;
@@ -28,7 +23,6 @@ border-radius:12px;
 box-shadow:0 4px 10px rgba(0,0,0,0.08);
 margin-top:20px;
 }
-
 button{
 padding:10px 15px;
 border:none;
@@ -38,38 +32,20 @@ background:#111827;
 color:white;
 font-weight:bold;
 }
-
 table{
 width:100%;
 border-collapse:collapse;
 margin-top:15px;
 }
-
 th,td{
 padding:8px;
 border-bottom:1px solid #ddd;
 text-align:right;
 }
-
-th{
-background:#f1f1f1;
-}
-
-.income{
-color:green;
-font-weight:bold;
-}
-
-.expense{
-color:red;
-font-weight:bold;
-}
-
-.total{
-font-weight:bold;
-font-size:18px;
-margin-top:10px;
-}
+th{background:#f1f1f1;}
+.income{color:green;font-weight:bold;}
+.expense{color:red;font-weight:bold;}
+.total{font-weight:bold;font-size:18px;margin-top:10px;}
 </style>
 </head>
 
@@ -99,14 +75,13 @@ margin-top:10px;
 <script>
 
 function loadFile(){
-const fileInput=document.getElementById("fileInput");
-if(!fileInput.files.length){
+const input=document.getElementById("fileInput");
+if(!input.files.length){
 document.getElementById("status").innerText="בחרי קובץ קודם";
 return;
 }
 
 const reader=new FileReader();
-
 reader.onload=function(e){
 const data=new Uint8Array(e.target.result);
 const workbook=XLSX.read(data,{type:"array"});
@@ -114,8 +89,7 @@ const sheet=workbook.Sheets[workbook.SheetNames[0]];
 const rows=XLSX.utils.sheet_to_json(sheet,{header:1});
 display(rows);
 };
-
-reader.readAsArrayBuffer(fileInput.files[0]);
+reader.readAsArrayBuffer(input.files[0]);
 }
 
 function display(rows){
@@ -130,7 +104,17 @@ d.setDate(d.getDate()+serial);
 return d.toLocaleDateString("he-IL");
 }
 
-for(let i=1;i<rows.length;i++){
+/* --- מציאת שורת הכותרת האמיתית --- */
+let startIndex=0;
+for(let i=0;i<rows.length;i++){
+if(rows[i] && rows[i][0]==="תאריך"){
+startIndex=i+1;
+break;
+}
+}
+
+/* --- קריאת תנועות רק מהשורה הנכונה --- */
+for(let i=startIndex;i<rows.length;i++){
 
 const r=rows[i];
 if(!r) continue;
@@ -147,7 +131,9 @@ let amount=0;
 if(credit>0) amount=Math.abs(credit);
 else if(debit>0) amount=-Math.abs(debit);
 
-if(amount!==0) total+=amount;
+if(amount===0) continue;
+
+total+=amount;
 
 let cls="";
 if(amount>0) cls="income";
@@ -159,7 +145,7 @@ tbody.innerHTML+=`
 <td>${type}</td>
 <td>${details}</td>
 <td class="${cls}">
-${amount!==0?amount.toLocaleString("he-IL"):""}
+${amount.toLocaleString("he-IL")}
 </td>
 </tr>`;
 }
