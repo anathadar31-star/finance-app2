@@ -4,11 +4,17 @@
   <meta charset="UTF-8">
   <title>Finance App</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { background-color: #f2f2f2; }
+  </style>
 </head>
 <body>
 
 <h2>Transactions</h2>
-<div id="output">Connecting...</div>
+<div id="output">Loading...</div>
 
 <script>
   const supabaseUrl = "https://tbciaxkeoztegfqiiozp.supabase.co";
@@ -19,7 +25,8 @@
   async function loadData() {
     const { data, error } = await client
       .from("transactions")
-      .select("*");
+      .select("*")
+      .order("date", { ascending: false });
 
     if (error) {
       document.getElementById("output").innerText = "Error: " + error.message;
@@ -31,11 +38,28 @@
       return;
     }
 
-    let html = "<ul>";
+    let html = `
+      <table>
+        <tr>
+          <th>Date</th>
+          <th>Description</th>
+          <th>Category</th>
+          <th>Amount</th>
+        </tr>
+    `;
+
     data.forEach(row => {
-      html += `<li>${row.description} - ${row.amount}</li>`;
+      html += `
+        <tr>
+          <td>${row.date || ""}</td>
+          <td>${row.description || ""}</td>
+          <td>${row.category || ""}</td>
+          <td>${row.amount || ""}</td>
+        </tr>
+      `;
     });
-    html += "</ul>";
+
+    html += "</table>";
 
     document.getElementById("output").innerHTML = html;
   }
