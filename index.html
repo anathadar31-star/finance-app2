@@ -2,17 +2,76 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Test Button</title>
+<title>CSV Upload</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<h2>בדיקת כפתור</h2>
+<h2>בדיקת והעלאת CSV</h2>
 
-<button onclick="test()">לחצי כאן</button>
+<input type="file" id="csvFile" accept=".csv">
+<button onclick="checkCSV()">בדוק קובץ</button>
+<button onclick="uploadCSV()">העלה לשרת</button>
+
+<p id="result"></p>
 
 <script>
-function test() {
-  alert("הכפתור עובד");
+const supabaseUrl = "https://tbciaxkeoztegfqiiozp.supabase.co";
+const supabaseKey = "sb_publishable_uVgowcNS5R846L874cXoZQ_6Hm-dFql";
+
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+let parsedRows = [];
+
+function checkCSV() {
+  const fileInput = document.getElementById("csvFile");
+  const result = document.getElementById("result");
+
+  if (!fileInput.files.length) {
+    result.innerText = "לא נבחר קובץ";
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const text = e.target.result;
+    const rows = text.trim().split("\n").map(r => r.split(","));
+
+    if (rows.length < 2) {
+      result.innerText = "אין נתונים בקובץ";
+      return;
+    }
+
+    parsedRows = rows.slice(1).map(r => ({
+      date: r[0],
+      description: r[1],
+      category: r[2],
+      amount: parseFloat(r[3])
+    }));
+
+    result.innerText = "הקובץ תקין. שורות: " + parsedRows.length;
+  };
+
+  reader.readAsText(fileInput.files[0]);
+}
+
+async function uploadCSV() {
+  const result = document.getElementById("result");
+
+  if (!parsedRows.length) {
+    result.innerText = "יש לבדוק קובץ לפני העלאה";
+    return;
+  }
+
+  const { error } = await supabase
+    .from("transactions")
+    .insert(parsedRows);
+
+  if (error) {
+    result.innerText = "שגיאה בהעלאה: " + error.message;
+  } else {
+    result.innerText = "העלאה הצליחה";
+  }
 }
 </script>
 
