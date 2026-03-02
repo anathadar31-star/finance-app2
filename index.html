@@ -9,11 +9,16 @@
     table { border-collapse: collapse; width: 100%; margin-top: 20px; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
     th { background-color: #f2f2f2; }
+    button { margin-left: 10px; }
   </style>
 </head>
 <body>
 
 <h2>Transactions</h2>
+
+<input type="file" id="fileInput" accept=".csv">
+<button onclick="uploadCSV()">Upload CSV</button>
+
 <div id="output">Loading...</div>
 
 <script>
@@ -57,6 +62,48 @@ async function loadData() {
   html += "</table>";
 
   document.getElementById("output").innerHTML = html;
+}
+
+async function uploadCSV() {
+  const file = document.getElementById("fileInput").files[0];
+  if (!file) {
+    alert("בחרי קובץ קודם");
+    return;
+  }
+
+  const text = await file.text();
+  const rows = text.split("\n").slice(1);
+
+  let transactions = [];
+
+  rows.forEach(row => {
+    const cols = row.split(",");
+    if (cols.length >= 4) {
+      transactions.push({
+        date: cols[0].trim(),
+        description: cols[1].trim(),
+        category: cols[2].trim(),
+        amount: parseFloat(cols[3])
+      });
+    }
+  });
+
+  if (transactions.length === 0) {
+    alert("לא נמצאו שורות תקינות");
+    return;
+  }
+
+  const { error } = await client
+    .from("transactions")
+    .insert(transactions);
+
+  if (error) {
+    alert("ייתכן שיש כפילויות — חלק מהשורות לא הוכנסו");
+  } else {
+    alert("הטעינה הסתיימה");
+  }
+
+  loadData();
 }
 
 loadData();
