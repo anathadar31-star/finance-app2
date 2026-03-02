@@ -2,98 +2,44 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Finance App</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    body { font-family: Arial; padding: 20px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-    th { background-color: #f2f2f2; }
-  </style>
+  <title>CSV Debug</title>
 </head>
 <body>
 
-<h2>Transactions</h2>
+<h2>בדיקת CSV</h2>
 
 <input type="file" id="fileInput" accept=".csv">
-<button onclick="uploadCSV()">Upload CSV</button>
+<button onclick="checkCSV()">בדוק קובץ</button>
 
-<div id="output">Loading...</div>
+<pre id="output"></pre>
 
 <script>
-const supabaseUrl = "https://tbciaxkeoztegfqiiozp.supabase.co";
-const supabaseKey = "sb_publishable_uVgowcNS5R846L874cXoZQ_6Hm-dFql";
-
-const client = supabase.createClient(supabaseUrl, supabaseKey);
-
-async function loadData() {
-  const { data } = await client
-    .from("transactions")
-    .select("*")
-    .order("date", { ascending: false });
-
-  let html = `
-    <table>
-      <tr>
-        <th>Date</th>
-        <th>Description</th>
-        <th>Category</th>
-        <th>Amount</th>
-      </tr>
-  `;
-
-  data.forEach(row => {
-    html += `
-      <tr>
-        <td>${row.date}</td>
-        <td>${row.description}</td>
-        <td>${row.category}</td>
-        <td>${row.amount}</td>
-      </tr>
-    `;
-  });
-
-  html += "</table>";
-  document.getElementById("output").innerHTML = html;
-}
-
-async function uploadCSV() {
+async function checkCSV() {
   const file = document.getElementById("fileInput").files[0];
   if (!file) {
-    alert("בחרי קובץ קודם");
+    alert("בחרי קובץ");
     return;
   }
 
   const text = await file.text();
-  const rows = text.split("\n").slice(1);
+  const rows = text.split("\n");
 
-  let transactions = [];
+  let result = "";
+  result += "שורה ראשונה:\n" + rows[0] + "\n\n";
+  result += "שורה שניה:\n" + rows[1] + "\n\n";
+  result += "מספר תווים בשורה השניה: " + rows[1].length + "\n\n";
 
-  rows.forEach(row => {
-    const cols = row.split(";"); // ← שינוי חשוב כאן
+  result += "פיצול לפי פסיק:\n";
+  result += JSON.stringify(rows[1].split(",")) + "\n\n";
 
-    if (cols.length >= 4) {
-      transactions.push({
-        date: cols[0].trim(),
-        description: cols[1].trim(),
-        category: cols[2].trim(),
-        amount: parseFloat(cols[3].replace(",", "."))
-      });
-    }
-  });
+  result += "פיצול לפי נקודה פסיק:\n";
+  result += JSON.stringify(rows[1].split(";")) + "\n\n";
 
-  if (transactions.length === 0) {
-    alert("לא נמצאו שורות תקינות");
-    return;
-  }
+  result += "פיצול לפי טאב:\n";
+  result += JSON.stringify(rows[1].split("\t")) + "\n\n";
 
-  await client.from("transactions").insert(transactions);
-
-  alert("הטעינה הסתיימה");
-  loadData();
+  document.getElementById("output").innerText = result;
 }
-
-loadData();
 </script>
 
 </body>
