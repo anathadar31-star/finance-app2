@@ -2,116 +2,19 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Transactions</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<title>בדיקה</title>
 </head>
 <body>
 
-<h2>Transactions</h2>
+<h2>בדיקת כפתור</h2>
 
-<input type="file" id="csvFile" accept=".csv">
+<input type="file" id="csvFile">
 <button onclick="uploadCSV()">טען קובץ</button>
-<button onclick="clearTable()" style="background:red;color:white;">
-נקה טבלה
-</button>
-
-<table border="1" id="table">
-<thead>
-<tr>
-<th>Date</th>
-<th>Description</th>
-<th>Category</th>
-<th>Amount</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
 
 <script>
-const supabase = window.supabase.createClient(
-  "https://tbciaxkeoztegfqiiozp.supabase.co",
-  "sb_publishable_uVgowcNS5R846L874cXoZQ_6Hm-dFql"
-);
-
-async function uploadCSV() {
-  const fileInput = document.getElementById('csvFile');
-  const file = fileInput.files[0];
-  if (!file) return;
-
-  const text = await file.text();
-  const rows = text.split('\n').slice(1);
-
-  let duplicateFound = false;
-
-  for (let row of rows) {
-    if (!row.trim()) continue;
-
-    const [date, description, category, amount] = row.split(',');
-
-    const { error } = await supabase
-      .from('transactions')
-      .insert({
-        date: date.trim(),
-        description: description.trim(),
-        category: category.trim(),
-        amount: parseFloat(amount)
-      });
-
-    if (error) {
-      if (error.message.includes("duplicate")) {
-        duplicateFound = true;
-      } else {
-        alert("שגיאה אחרת: " + error.message);
-        return;
-      }
-    }
-  }
-
-  if (duplicateFound) {
-    alert("⚠️ הקובץ מכיל דיווחים שכבר קיימים במערכת");
-  } else {
-    alert("✔ הקובץ נטען בהצלחה");
-  }
-
-  loadData();
+function uploadCSV() {
+  alert("הפונקציה רצה");
 }
-
-async function clearTable() {
-  if (!confirm("בטוחה שברצונך למחוק את כל הנתונים?")) return;
-
-  await supabase
-    .from('transactions')
-    .delete()
-    .neq('id', '00000000-0000-0000-0000-000000000000');
-
-  alert("הטבלה נוקתה");
-  loadData();
-}
-
-async function loadData() {
-  const { data } = await supabase
-    .from('transactions')
-    .select('*')
-    .order('date', { ascending: false });
-
-  const tbody = document.querySelector('#table tbody');
-  tbody.innerHTML = '';
-
-  if (!data) return;
-
-  data.forEach(row => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${row.date}</td>
-      <td>${row.description}</td>
-      <td>${row.category}</td>
-      <td>${row.amount}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-loadData();
 </script>
 
 </body>
