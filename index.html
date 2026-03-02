@@ -29,4 +29,34 @@
   async function loadData() {
     const { data, error } = await client
       .from("transactions")
-      .select
+      .select("*")
+      .order("date", { ascending: false });
+
+    if (error) {
+      document.getElementById("output").innerText = error.message;
+      return;
+    }
+
+    let html = `
+      <table>
+        <tr>
+          <th>Date</th>
+          <th>Description</th>
+          <th>Category</th>
+          <th>Amount</th>
+        </tr>
+    `;
+
+    data.forEach(row => {
+      html += `
+        <tr>
+          <td>${row.date || ""}</td>
+          <td>${row.description || ""}</td>
+          <td>${row.category || ""}</td>
+          <td>${row.amount || ""}</td>
+        </tr>
+      `;
+    });
+
+    html += "</table>";
+    document.get
