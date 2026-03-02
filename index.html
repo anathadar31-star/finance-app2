@@ -2,61 +2,34 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Finance App</title>
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <style>
-    body { font-family: Arial; padding: 20px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-    th { background-color: #f2f2f2; }
-    button { margin-top: 10px; padding: 6px 12px; }
-  </style>
+  <title>Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<h2>Transactions</h2>
-
-<input type="file" id="fileInput" accept=".csv">
-<button onclick="uploadCSV()">Upload CSV</button>
-
-<div id="output">Loading...</div>
+<h2>Test Connection</h2>
+<div id="result">Checking...</div>
 
 <script>
-  const supabaseUrl = "https://tbciaxkeoztegfqiiozp.supabase.co";
-  const supabaseKey = "sb_publishable_uVgowcNS5R846L874cXoZQ_6Hm-dFql";
-  const client = window.supabase.createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = "https://tbciaxkeoztegfqiiozp.supabase.co";
+const supabaseKey = "sb_publishable_uVgowcNS5R846L874cXoZQ_6Hm-dFql";
 
-  async function loadData() {
-    const { data, error } = await client
-      .from("transactions")
-      .select("*")
-      .order("date", { ascending: false });
+const client = supabase.createClient(supabaseUrl, supabaseKey);
 
-    if (error) {
-      document.getElementById("output").innerText = error.message;
-      return;
-    }
+async function test() {
+  const { data, error } = await client
+    .from("transactions")
+    .select("id");
 
-    let html = `
-      <table>
-        <tr>
-          <th>Date</th>
-          <th>Description</th>
-          <th>Category</th>
-          <th>Amount</th>
-        </tr>
-    `;
+  if (error) {
+    document.getElementById("result").innerText = "ERROR: " + error.message;
+  } else {
+    document.getElementById("result").innerText = "Connected. Rows: " + data.length;
+  }
+}
 
-    data.forEach(row => {
-      html += `
-        <tr>
-          <td>${row.date || ""}</td>
-          <td>${row.description || ""}</td>
-          <td>${row.category || ""}</td>
-          <td>${row.amount || ""}</td>
-        </tr>
-      `;
-    });
+test();
+</script>
 
-    html += "</table>";
-    document.get
+</body>
+</html>
