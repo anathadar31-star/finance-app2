@@ -1,4 +1,14 @@
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Finance App</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<h2>Transactions</h2>
+<div id="output">Loading...</div>
 
 <script>
   const supabaseUrl = "https://tbciaxkeoztegfqiiozp.supabase.co";
@@ -6,14 +16,32 @@
 
   const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-  async function testConnection() {
+  async function loadData() {
     const { data, error } = await supabase
       .from("transactions")
       .select("*");
 
-    console.log("DATA:", data);
-    console.log("ERROR:", error);
+    if (error) {
+      document.getElementById("output").innerText = "Error: " + error.message;
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      document.getElementById("output").innerText = "No transactions yet.";
+      return;
+    }
+
+    let html = "<ul>";
+    data.forEach(row => {
+      html += `<li>${row.description} - ${row.amount}</li>`;
+    });
+    html += "</ul>";
+
+    document.getElementById("output").innerHTML = html;
   }
 
-  testConnection();
+  loadData();
 </script>
+
+</body>
+</html>
