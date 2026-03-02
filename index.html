@@ -2,14 +2,8 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Finance App</title>
+<title>Transactions</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-body { font-family: Arial; padding: 20px; }
-table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-th { background-color: #f2f2f2; }
-</style>
 </head>
 <body>
 
@@ -18,97 +12,69 @@ th { background-color: #f2f2f2; }
 <input type="file" id="csvFile" accept=".csv">
 <button onclick="uploadCSV()">טען קובץ</button>
 
-<div id="tableContainer">טוען נתונים...</div>
+<table border="1" id="table">
+<thead>
+<tr>
+<th>Date</th>
+<th>Description</th>
+<th>Category</th>
+<th>Amount</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
 
 <script>
-const supabaseUrl = "https://tbciaxkeoztegfqiiozp.supabase.co";
-const supabaseKey = "sb_publishable_uVgowcNS5R846L874cXoZQ_6Hm-dFql";
-
-const { createClient } = supabase;
-const client = createClient(supabaseUrl, supabaseKey);
-
-async function loadData() {
-  const { data, error } = await client
-    .from("transactions")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    document.getElementById("tableContainer").innerText = error.message;
-    return;
-  }
-
-  if (!data.length) {
-    document.getElementById("tableContainer").innerText = "אין נתונים";
-    return;
-  }
-
-  let html = `
-    <table>
-      <tr>
-        <th>Date</th>
-        <th>Description</th>
-        <th>Category</th>
-        <th>Amount</th>
-      </tr>
-  `;
-
-  data.forEach(row => {
-    html += `
-      <tr>
-        <td>${row.date}</td>
-        <td>${row.description}</td>
-        <td>${row.category}</td>
-        <td>${row.amount}</td>
-      </tr>
-    `;
-  });
-
-  html += "</table>";
-
-  document.getElementById("tableContainer").innerHTML = html;
-}
+const supabase = window.supabase.createClient(
+  "https://tbciaxkeoztegfqiiozp.supabase.co",
+  "sb_publishable_uVgowcNS5R846L874cXoZQ_6Hm-dFql"
+);
 
 async function uploadCSV() {
-  const fileInput = document.getElementById("csvFile");
-  if (!fileInput.files.length) {
-    alert("בחרי קובץ קודם");
-    return;
+  const fileInput = document.getElementById('csvFile');
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  const text = await file.text();
+  const rows = text.split('\n').slice(1);
+
+  for (let row of rows) {
+    if (!row.trim()) continue;
+    const [date, description, category, amount] = row.split(',');
+
+    await supabase.from('transactions').insert({
+      date: date.trim(),
+      description: description.trim(),
+      category: category.trim(),
+      amount: parseFloat(amount)
+    });
   }
 
-  const text = await fileInput.files[0].text();
-  const rows = text.trim().split("\n").slice(1);
-
-  let transactions = [];
-
-  rows.forEach(row => {
-    const cols = row.split(",");
-    if (cols.length >= 4) {
-      transactions.push({
-        date: cols[0].trim(),
-        description: cols[1].trim(),
-        category: cols[2].trim(),
-        amount: parseFloat(cols[3])
-      });
-    }
-  });
-
-  if (!transactions.length) {
-    alert("לא נמצאו שורות תקינות");
-    return;
-  }
-
-  const { error } = await client
-    .from("transactions")
-    .insert(transactions);
-
-  if (error) {
-    alert(error.message);
-  } else {
-    alert("הטעינה הסתיימה");
-  }
-
+  alert("הקובץ נטען");
   loadData();
+}
+
+async function loadData() {
+  const { data } = await supabase
+    .from('transactions')
+    .select('*')
+    .order('date', { ascending: false });
+
+  const tbody = document.querySelector('#table tbody');
+  tbody.innerHTML = '';
+
+  if (!data) return;
+
+  data.forEach(row => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${row.date}</td>
+      <td>${row.description}</td>
+      <td>${row.category}</td>
+      <td>${row.amount}</td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
 loadData();
