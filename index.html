@@ -1,44 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>CSV Debug</title>
+<meta charset="UTF-8">
+<title>Test Button</title>
 </head>
 <body>
 
-<h2>בדיקת CSV</h2>
+<h2>בדיקת כפתור</h2>
 
-<input type="file" id="fileInput" accept=".csv">
-<button onclick="checkCSV()">בדוק קובץ</button>
-
-<pre id="output"></pre>
+<button onclick="test()">לחצי כאן</button>
 
 <script>
-async function checkCSV() {
-  const file = document.getElementById("fileInput").files[0];
-  if (!file) {
-    alert("בחרי קובץ");
-    return;
-  }
-
-  const text = await file.text();
-  const rows = text.split("\n");
-
-  let result = "";
-  result += "שורה ראשונה:\n" + rows[0] + "\n\n";
-  result += "שורה שניה:\n" + rows[1] + "\n\n";
-  result += "מספר תווים בשורה השניה: " + rows[1].length + "\n\n";
-
-  result += "פיצול לפי פסיק:\n";
-  result += JSON.stringify(rows[1].split(",")) + "\n\n";
-
-  result += "פיצול לפי נקודה פסיק:\n";
-  result += JSON.stringify(rows[1].split(";")) + "\n\n";
-
-  result += "פיצול לפי טאב:\n";
-  result += JSON.stringify(rows[1].split("\t")) + "\n\n";
-
-  document.getElementById("output").innerText = result;
+function test() {
+  alert("הכפתור עובד");
 }
 </script>
 
