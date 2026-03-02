@@ -2,77 +2,109 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>CSV Upload</title>
+<title>Finance App</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body { font-family: Arial; padding: 20px; }
+table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+th { background-color: #f2f2f2; }
+</style>
 </head>
 <body>
 
-<h2>בדיקת והעלאת CSV</h2>
+<h2>Transactions</h2>
 
 <input type="file" id="csvFile" accept=".csv">
-<button onclick="checkCSV()">בדוק קובץ</button>
-<button onclick="uploadCSV()">העלה לשרת</button>
+<button onclick="uploadCSV()">טען קובץ</button>
 
-<p id="result"></p>
+<div id="tableContainer">טוען נתונים...</div>
 
 <script>
 const supabaseUrl = "https://tbciaxkeoztegfqiiozp.supabase.co";
 const supabaseKey = "sb_publishable_uVgowcNS5R846L874cXoZQ_6Hm-dFql";
-
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-let parsedRows = [];
+async function loadData() {
+  const { data, error } = await supabase
+    .from("transactions")
+    .select("*")
+    .order("date", { ascending: false });
 
-function checkCSV() {
-  const fileInput = document.getElementById("csvFile");
-  const result = document.getElementById("result");
-
-  if (!fileInput.files.length) {
-    result.innerText = "לא נבחר קובץ";
+  if (error) {
+    document.getElementById("tableContainer").innerText = error.message;
     return;
   }
 
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const text = e.target.result;
-    const rows = text.trim().split("\n").map(r => r.split(","));
+  let html = `
+    <table>
+      <tr>
+        <th>Date</th>
+        <th>Description</th>
+        <th>Category</th>
+        <th>Amount</th>
+      </tr>
+  `;
 
-    if (rows.length < 2) {
-      result.innerText = "אין נתונים בקובץ";
-      return;
-    }
+  data.forEach(row => {
+    html += `
+      <tr>
+        <td>${row.date}</td>
+        <td>${row.description}</td>
+        <td>${row.category}</td>
+        <td>${row.amount}</td>
+      </tr>
+    `;
+  });
 
-    parsedRows = rows.slice(1).map(r => ({
-      date: r[0],
-      description: r[1],
-      category: r[2],
-      amount: parseFloat(r[3])
-    }));
+  html += "</table>";
 
-    result.innerText = "הקובץ תקין. שורות: " + parsedRows.length;
-  };
-
-  reader.readAsText(fileInput.files[0]);
+  document.getElementById("tableContainer").innerHTML = html;
 }
 
 async function uploadCSV() {
-  const result = document.getElementById("result");
+  const fileInput = document.getElementById("csvFile");
+  if (!fileInput.files.length) {
+    alert("בחרי קובץ קודם");
+    return;
+  }
 
-  if (!parsedRows.length) {
-    result.innerText = "יש לבדוק קובץ לפני העלאה";
+  const text = await fileInput.files[0].text();
+  const rows = text.trim().split("\n").slice(1);
+
+  let transactions = [];
+
+  rows.forEach(row => {
+    const cols = row.split(",");
+    if (cols.length >= 4) {
+      transactions.push({
+        date: cols[0].trim(),
+        description: cols[1].trim(),
+        category: cols[2].trim(),
+        amount: parseFloat(cols[3])
+      });
+    }
+  });
+
+  if (!transactions.length) {
+    alert("לא נמצאו שורות תקינות");
     return;
   }
 
   const { error } = await supabase
     .from("transactions")
-    .insert(parsedRows);
+    .insert(transactions);
 
   if (error) {
-    result.innerText = "שגיאה בהעלאה: " + error.message;
+    alert("ייתכן שחלק מהשורות כבר קיימות");
   } else {
-    result.innerText = "העלאה הצליחה";
+    alert("הטעינה הסתיימה");
   }
+
+  loadData();
 }
+
+loadData();
 </script>
 
 </body>
