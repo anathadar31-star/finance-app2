@@ -2,13 +2,19 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Test</title>
+  <title>Finance App</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { background-color: #f2f2f2; }
+  </style>
 </head>
 <body>
 
-<h2>Test Connection</h2>
-<div id="result">Checking...</div>
+<h2>Transactions</h2>
+<div id="output">Loading...</div>
 
 <script>
 const supabaseUrl = "https://tbciaxkeoztegfqiiozp.supabase.co";
@@ -16,19 +22,44 @@ const supabaseKey = "sb_publishable_uVgowcNS5R846L874cXoZQ_6Hm-dFql";
 
 const client = supabase.createClient(supabaseUrl, supabaseKey);
 
-async function test() {
+async function loadData() {
   const { data, error } = await client
     .from("transactions")
-    .select("id");
+    .select("*")
+    .order("date", { ascending: false });
 
   if (error) {
-    document.getElementById("result").innerText = "ERROR: " + error.message;
-  } else {
-    document.getElementById("result").innerText = "Connected. Rows: " + data.length;
+    document.getElementById("output").innerText = error.message;
+    return;
   }
+
+  let html = `
+    <table>
+      <tr>
+        <th>Date</th>
+        <th>Description</th>
+        <th>Category</th>
+        <th>Amount</th>
+      </tr>
+  `;
+
+  data.forEach(row => {
+    html += `
+      <tr>
+        <td>${row.date}</td>
+        <td>${row.description}</td>
+        <td>${row.category}</td>
+        <td>${row.amount}</td>
+      </tr>
+    `;
+  });
+
+  html += "</table>";
+
+  document.getElementById("output").innerHTML = html;
 }
 
-test();
+loadData();
 </script>
 
 </body>
