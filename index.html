@@ -9,7 +9,6 @@
     table { border-collapse: collapse; width: 100%; margin-top: 20px; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
     th { background-color: #f2f2f2; }
-    button { margin-left: 10px; }
   </style>
 </head>
 <body>
@@ -28,15 +27,10 @@ const supabaseKey = "sb_publishable_uVgowcNS5R846L874cXoZQ_6Hm-dFql";
 const client = supabase.createClient(supabaseUrl, supabaseKey);
 
 async function loadData() {
-  const { data, error } = await client
+  const { data } = await client
     .from("transactions")
     .select("*")
     .order("date", { ascending: false });
-
-  if (error) {
-    document.getElementById("output").innerText = error.message;
-    return;
-  }
 
   let html = `
     <table>
@@ -60,7 +54,6 @@ async function loadData() {
   });
 
   html += "</table>";
-
   document.getElementById("output").innerHTML = html;
 }
 
@@ -77,13 +70,14 @@ async function uploadCSV() {
   let transactions = [];
 
   rows.forEach(row => {
-    const cols = row.split(",");
+    const cols = row.split(";"); // ← שינוי חשוב כאן
+
     if (cols.length >= 4) {
       transactions.push({
         date: cols[0].trim(),
         description: cols[1].trim(),
         category: cols[2].trim(),
-        amount: parseFloat(cols[3])
+        amount: parseFloat(cols[3].replace(",", "."))
       });
     }
   });
@@ -93,16 +87,9 @@ async function uploadCSV() {
     return;
   }
 
-  const { error } = await client
-    .from("transactions")
-    .insert(transactions);
+  await client.from("transactions").insert(transactions);
 
-  if (error) {
-    alert("ייתכן שיש כפילויות — חלק מהשורות לא הוכנסו");
-  } else {
-    alert("הטעינה הסתיימה");
-  }
-
+  alert("הטעינה הסתיימה");
   loadData();
 }
 
