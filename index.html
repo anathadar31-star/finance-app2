@@ -11,6 +11,9 @@
 
 <input type="file" id="csvFile" accept=".csv">
 <button onclick="uploadCSV()">טען קובץ</button>
+<button onclick="clearTable()" style="background:red;color:white;">
+נקה טבלה
+</button>
 
 <table border="1" id="table">
 <thead>
@@ -38,19 +41,50 @@ async function uploadCSV() {
   const text = await file.text();
   const rows = text.split('\n').slice(1);
 
+  let duplicateFound = false;
+
   for (let row of rows) {
     if (!row.trim()) continue;
+
     const [date, description, category, amount] = row.split(',');
 
-    await supabase.from('transactions').insert({
-      date: date.trim(),
-      description: description.trim(),
-      category: category.trim(),
-      amount: parseFloat(amount)
-    });
+    const { error } = await supabase
+      .from('transactions')
+      .insert({
+        date: date.trim(),
+        description: description.trim(),
+        category: category.trim(),
+        amount: parseFloat(amount)
+      });
+
+    if (error) {
+      if (error.message.includes("duplicate")) {
+        duplicateFound = true;
+      } else {
+        alert("שגיאה אחרת: " + error.message);
+        return;
+      }
+    }
   }
 
-  alert("הקובץ נטען");
+  if (duplicateFound) {
+    alert("⚠️ הקובץ מכיל דיווחים שכבר קיימים במערכת");
+  } else {
+    alert("✔ הקובץ נטען בהצלחה");
+  }
+
+  loadData();
+}
+
+async function clearTable() {
+  if (!confirm("בטוחה שברצונך למחוק את כל הנתונים?")) return;
+
+  await supabase
+    .from('transactions')
+    .delete()
+    .neq('id', '00000000-0000-0000-0000-000000000000');
+
+  alert("הטבלה נוקתה");
   loadData();
 }
 
