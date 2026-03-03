@@ -2,17 +2,17 @@
 <html lang="he">
 <head>
 <meta charset="UTF-8">
-<title>בדיקת קריאה 2</title>
+<title>טעינת CSV פשוטה</title>
 </head>
 <body>
 
-<h2>בדיקה</h2>
+<h2>טעינת קובץ CSV</h2>
 
 <input type="file" id="fileInput">
-<button onclick="readFile()">בדיקה</button>
+<button onclick="processFile()">טעינה</button>
 
 <script>
-function readFile() {
+function processFile() {
   const file = document.getElementById("fileInput").files[0];
 
   if (!file) {
@@ -20,16 +20,22 @@ function readFile() {
     return;
   }
 
-  alert("גודל הקובץ: " + file.size + " bytes");
-
   const reader = new FileReader();
 
   reader.onload = function(e) {
-    alert("תוכן:\n\n" + e.target.result);
-  };
+    const text = e.target.result;
 
-  reader.onerror = function() {
-    alert("שגיאה בקריאה");
+    const lines = text.split("\n");
+
+    if (lines.length < 2) {
+      alert("הקובץ ריק או לא תקין");
+      return;
+    }
+
+    alert("נמצאו " + (lines.length - 1) + " שורות נתונים");
+
+    // מדפיס שורה ראשונה לבדיקה
+    alert("שורה ראשונה:\n" + lines[1]);
   };
 
   reader.readAsText(file);
