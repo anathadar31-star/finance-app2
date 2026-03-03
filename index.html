@@ -2,24 +2,29 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>בדיקת Supabase</title>
+<title>בדיקת Client</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<h1>בדיקת Supabase</h1>
-
-<button id="btn">בדוק חיבור</button>
+<h1>בדיקת יצירת Client</h1>
+<button id="btn">בדוק</button>
 
 <script>
 document.getElementById("btn").addEventListener("click", function() {
 
-  if (!window.supabase) {
-    alert("Supabase לא נטען");
-    return;
-  }
+  try {
 
-  alert("Supabase נטען תקין");
+    const supabase = window.supabase.createClient(
+      "https://tbciaxkeoztegfqiiozp.supabase.co",
+      "sb_publishable_uVgowcNS5R846L874cXoZQ_6Hm-dFql"
+    );
+
+    alert("Client נוצר בהצלחה");
+
+  } catch (err) {
+    alert("שגיאה ביצירת Client: " + err.message);
+  }
 
 });
 </script>
