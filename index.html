@@ -2,17 +2,22 @@
 <html lang="he">
 <head>
 <meta charset="UTF-8">
-<title>בדיקת כפתור</title>
+<title>בדיקת Supabase</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<h2>בדיקת כפתור</h2>
+<h2>בדיקת Supabase</h2>
 
-<button onclick="upload()">בדיקה</button>
+<button onclick="test()">בדיקה</button>
 
 <script>
-function upload() {
-  alert("הפונקציה רצה");
+function test() {
+  if (window.supabase) {
+    alert("Supabase נטען");
+  } else {
+    alert("Supabase לא נטען");
+  }
 }
 </script>
 
