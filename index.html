@@ -2,17 +2,25 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>בדיקה JS</title>
+<title>בדיקת Supabase</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<h1>בדיקת כפתור</h1>
+<h1>בדיקת Supabase</h1>
 
-<button id="btn">לחצי כאן</button>
+<button id="btn">בדוק חיבור</button>
 
 <script>
 document.getElementById("btn").addEventListener("click", function() {
-  alert("JS עובד");
+
+  if (!window.supabase) {
+    alert("Supabase לא נטען");
+    return;
+  }
+
+  alert("Supabase נטען תקין");
+
 });
 </script>
 
