@@ -2,28 +2,35 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>בדיקת Client</title>
+<title>בדיקת Insert</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<h1>בדיקת יצירת Client</h1>
-<button id="btn">בדוק</button>
+<h1>בדיקת כתיבה למסד</h1>
+<button id="btn">הוסף רשומה לבדיקה</button>
 
 <script>
-document.getElementById("btn").addEventListener("click", function() {
+const supabase = window.supabase.createClient(
+  "https://tbciaxkeoztegfqiiozp.supabase.co",
+  "sb_publishable_uVgowcNS5R846L874cXoZQ_6Hm-dFql"
+);
 
-  try {
+document.getElementById("btn").addEventListener("click", async function() {
 
-    const supabase = window.supabase.createClient(
-      "https://tbciaxkeoztegfqiiozp.supabase.co",
-      "sb_publishable_uVgowcNS5R846L874cXoZQ_6Hm-dFql"
-    );
+  const { error } = await supabase
+    .from('transactions')
+    .insert({
+      date: "2026-03-03",
+      description: "בדיקה",
+      category: "test",
+      amount: 1
+    });
 
-    alert("Client נוצר בהצלחה");
-
-  } catch (err) {
-    alert("שגיאה ביצירת Client: " + err.message);
+  if (error) {
+    alert("שגיאה: " + error.message);
+  } else {
+    alert("נכתב למסד בהצלחה");
   }
 
 });
