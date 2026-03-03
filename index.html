@@ -1,307 +1,32 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="he">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Transactions CSV → Supabase</title>
-
-  <!-- Supabase JS (UMD) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- PapaParse for robust CSV parsing -->
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    h1 { margin: 0 0 12px; }
-    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-    button { padding: 10px 14px; cursor: pointer; }
-    .danger { background: #b00020; color: #fff; border: none; }
-    .secondary { background: #eee; border: 1px solid #ccc; }
-    .status { margin-top: 14px; padding: 12px; border: 1px solid #ddd; background: #fafafa; white-space: pre-wrap; }
-    table { margin-top: 16px; border-collapse: collapse; width: 100%; max-width: 900px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
-    th { background: #f2f2f2; }
-    .muted { color: #666; font-size: 13px; }
-    .pill { display: inline-block; padding: 2px 8px; border: 1px solid #ddd; border-radius: 999px; font-size: 12px; }
-  </style>
+<meta charset="UTF-8">
+<title>בדיקת CSV</title>
 </head>
-
 <body>
-  <h1>Transactions</h1>
-  <div class="muted">
-    פורמט CSV צפוי: <span class="pill">date</span> <span class="pill">description</span> <span class="pill">category</span> <span class="pill">amount</span><br/>
-    date בפורמט YYYY-MM-DD, amount מספר.
-  </div>
 
-  <div class="row" style="margin-top:12px;">
-    <input id="fileInput" type="file" accept=".csv,text/csv" />
-    <button id="uploadBtn">טען קובץ</button>
-    <button id="refreshBtn" class="secondary">רענן תצוגה</button>
-    <button id="clearBtn" class="danger">נקה טבלה</button>
-  </div>
+<h2>בדיקת קריאת קובץ</h2>
 
-  <div id="status" class="status">מוכן.</div>
-
-  <table id="table" style="display:none;">
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Description</th>
-        <th>Category</th>
-        <th>Amount</th>
-      </tr>
-    </thead>
-    <tbody id="tbody"></tbody>
-  </table>
+<input type="file" id="fileInput">
+<button onclick="readFile()">בדיקה</button>
 
 <script>
-/** =========================
- *  1) CONFIG - לשים אצלך
- *  ========================= */
-const SUPABASE_URL = "PUT_YOUR_SUPABASE_URL_HERE";
-const SUPABASE_ANON_KEY = "PUT_YOUR_SUPABASE_ANON_KEY_HERE";
-const TABLE_NAME = "transactions";
+function readFile() {
+  const file = document.getElementById("fileInput").files[0];
 
-// לפי השגיאה שלך: unique_transaction על (date, description, amount)
-const ON_CONFLICT = "date,description,amount";
-
-/** =========================
- *  2) Init
- *  ========================= */
-const statusEl = document.getElementById("status");
-const fileInput = document.getElementById("fileInput");
-const uploadBtn = document.getElementById("uploadBtn");
-const refreshBtn = document.getElementById("refreshBtn");
-const clearBtn = document.getElementById("clearBtn");
-
-function setStatus(msg) {
-  statusEl.textContent = msg;
-  console.log(msg);
-}
-
-function assertConfig() {
-  if (!SUPABASE_URL.startsWith("http") || SUPABASE_ANON_KEY.includes("PUT_YOUR")) {
-    setStatus("חסרה הגדרה: SUPABASE_URL / SUPABASE_ANON_KEY. עדכני למעלה בקוד ושמרי.");
-    return false;
-  }
-  return true;
-}
-
-const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-/** =========================
- *  3) Helpers
- *  ========================= */
-function toNumber(x) {
-  if (x === null || x === undefined) return null;
-  const s = String(x).trim().replace(/,/g, "");
-  const n = Number(s);
-  return Number.isFinite(n) ? n : null;
-}
-
-function toDateISO(x) {
-  if (!x) return null;
-  const s = String(x).trim();
-  // Expect YYYY-MM-DD
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  return null;
-}
-
-function normalizeRow(row) {
-  // תומך גם בכותרות שונות אם צריך
-  const date = toDateISO(row.date ?? row.Date ?? row.DATE);
-  const description = (row.description ?? row.Description ?? row.DESCRIPTION ?? "").toString().trim();
-  const category = (row.category ?? row.Category ?? row.CATEGORY ?? "").toString().trim();
-  const amount = toNumber(row.amount ?? row.Amount ?? row.AMOUNT);
-
-  return { date, description, category, amount };
-}
-
-function isValidRow(r) {
-  return !!(r.date && r.description && r.amount !== null);
-}
-
-/** =========================
- *  4) UI actions
- *  ========================= */
-uploadBtn.addEventListener("click", async () => {
-  if (!assertConfig()) return;
-
-  const file = fileInput.files?.[0];
   if (!file) {
-    setStatus("לא נבחר קובץ. בחרי קובץ CSV ואז לחצי 'טען קובץ'.");
+    alert("לא נבחר קובץ");
     return;
   }
 
-  setStatus("קורא CSV...");
-  Papa.parse(file, {
-    header: true,
-    skipEmptyLines: true,
-    complete: async (results) => {
-      try {
-        const raw = results.data || [];
-        const normalized = raw.map(normalizeRow);
+  alert("שם הקובץ: " + file.name);
 
-        const valid = normalized.filter(isValidRow);
-        const invalidCount = normalized.length - valid.length;
-
-        if (valid.length === 0) {
-          setStatus("אין רשומות תקינות לטעינה (בדקי כותרות/פורמט).");
-          return;
-        }
-
-        // Dedup בתוך הקובץ לפני שליחה (חוסך כפילויות פנימיות)
-        const seen = new Set();
-        const unique = [];
-        for (const r of valid) {
-          const key = `${r.date}||${r.description}||${r.amount}`;
-          if (!seen.has(key)) {
-            seen.add(key);
-            unique.push(r);
-          }
-        }
-
-        setStatus(
-          `נמצאו ${raw.length} שורות בקובץ.\n` +
-          `תקינות לטעינה: ${valid.length}\n` +
-          `כפילויות בתוך הקובץ שסוננו: ${valid.length - unique.length}\n` +
-          `שורות לא תקינות שסוננו: ${invalidCount}\n\n` +
-          `מעלה ל-Supabase...`
-        );
-
-        // Upsert: מוסיף חדשות, מדלג על קיימות (בלי שגיאה)
-        const { data, error } = await supabase
-          .from(TABLE_NAME)
-          .upsert(unique, { onConflict: ON_CONFLICT, ignoreDuplicates: true })
-          .select(); // מחזיר מה שנוסף/עודכן (יכול להחזיר פחות במקרים מסוימים)
-
-        if (error) {
-          // אם עדיין תיפול על unique מסיבה כלשהי - נתן הודעה "דיווח כפול"
-          const msg = (error.message || "").toLowerCase();
-          if (msg.includes("duplicate key") || msg.includes("unique")) {
-            setStatus(
-              "המערכת זיהתה דיווחים כפולים.\n" +
-              "לא בוצעה טעינה מלאה.\n\n" +
-              "המלצה: להשאיר upsert + ignoreDuplicates (כמו בקוד),\n" +
-              "ואם זה עדיין קורה - צריך לבדוק ש-ON_CONFLICT תואם בדיוק לאינדקס הייחודי.\n\n" +
-              `שגיאה: ${error.message}`
-            );
-          } else {
-            setStatus(`שגיאה בהעלאה: ${error.message}`);
-          }
-          return;
-        }
-
-        // מספר "נוספו" הוא לא תמיד מדויק עם upsert+ignoreDuplicates (תלוי בהחזרת select),
-        // לכן נסכם בצורה שמרנית:
-        const insertedOrReturned = Array.isArray(data) ? data.length : 0;
-        const estimatedDuplicates = unique.length - insertedOrReturned;
-
-        setStatus(
-          "הטעינה הסתיימה.\n\n" +
-          `סה"כ נשלחו לשרת: ${unique.length}\n` +
-          `נוספו/הוחזרו מהשרת: ${insertedOrReturned}\n` +
-          `כנראה דולגו ככפילויות במסד: ${estimatedDuplicates < 0 ? 0 : estimatedDuplicates}\n\n` +
-          "מרענן תצוגה..."
-        );
-
-        await loadTable();
-      } catch (e) {
-        setStatus("שגיאה לא צפויה: " + (e?.message || e));
-      }
-    },
-    error: (err) => {
-      setStatus("שגיאה בקריאת CSV: " + (err?.message || err));
-    }
+  file.text().then(text => {
+    alert("תוכן הקובץ:\n\n" + text);
   });
-});
-
-refreshBtn.addEventListener("click", async () => {
-  if (!assertConfig()) return;
-  await loadTable();
-});
-
-clearBtn.addEventListener("click", async () => {
-  if (!assertConfig()) return;
-
-  const ok = confirm("בטוחה שתרצי למחוק את כל הרשומות בטבלה? פעולה בלתי הפיכה.");
-  if (!ok) return;
-
-  setStatus("מוחק את כל הרשומות...");
-  // מחיקה: נשתמש בפילטר שתופס הכל. (נדרש תנאי ל-DELETE)
-  const { error } = await supabase
-    .from(TABLE_NAME)
-    .delete()
-    .neq("id", "00000000-0000-0000-0000-000000000000");
-
-  if (error) {
-    setStatus("שגיאה במחיקה: " + error.message);
-    return;
-  }
-
-  setStatus("הטבלה נוקתה בהצלחה. מרענן תצוגה...");
-  await loadTable();
-});
-
-/** =========================
- *  5) Load & render table
- *  ========================= */
-async function loadTable() {
-  setStatus("טוען נתונים מהמסד...");
-  const { data, error } = await supabase
-    .from(TABLE_NAME)
-    .select("date,description,category,amount")
-    .order("date", { ascending: false })
-    .limit(200);
-
-  if (error) {
-    setStatus("שגיאה בקריאת נתונים: " + error.message);
-    return;
-  }
-
-  renderTable(data || []);
-  setStatus(`נטענו ${data?.length || 0} רשומות (מציג עד 200).`);
-}
-
-function renderTable(rows) {
-  const table = document.getElementById("table");
-  const tbody = document.getElementById("tbody");
-  tbody.innerHTML = "";
-
-  if (!rows || rows.length === 0) {
-    table.style.display = "none";
-    return;
-  }
-
-  for (const r of rows) {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${escapeHtml(r.date ?? "")}</td>
-      <td>${escapeHtml(r.description ?? "")}</td>
-      <td>${escapeHtml(r.category ?? "")}</td>
-      <td>${escapeHtml(r.amount ?? "")}</td>
-    `;
-    tbody.appendChild(tr);
-  }
-
-  table.style.display = "";
-}
-
-function escapeHtml(s) {
-  return String(s)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-// טען תצוגה בהתחלה (אופציונלי)
-if (assertConfig()) {
-  loadTable();
-} else {
-  setStatus("עדכני SUPABASE_URL ו-SUPABASE_ANON_KEY בקוד למעלה, שמרי, ורענני את הדף.");
 }
 </script>
+
 </body>
 </html>
