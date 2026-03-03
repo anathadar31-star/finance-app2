@@ -2,10 +2,8 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>בדיקת כתיבה למסד</title>
-
+<title>בדיקה אמיתית</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1"></script>
-
 </head>
 <body>
 
@@ -13,14 +11,16 @@
 <button id="btn">הוסף רשומה לבדיקה</button>
 
 <script>
-const supabase = supabase.createClient(
+const client = window.supabase.createClient(
   "https://tbciaxkeoztegfqiiozp.supabase.co",
   "sb_publishable_uVgowcNS5R846L874cXoZQ_6Hm-dFql"
 );
 
 document.getElementById("btn").addEventListener("click", async function() {
 
-  const { error } = await supabase
+  alert("הכפתור נלחץ");
+
+  const { data, error } = await client
     .from('transactions')
     .insert([
       {
