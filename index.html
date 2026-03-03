@@ -2,18 +2,61 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>בדיקה</title>
+<title>Transactions</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
 <h2>בדיקת טעינת קובץ</h2>
 
-<input type="file" id="csvFile">
-<button onclick="testUpload()">טען קובץ</button>
+<input type="file" id="csvFile" accept=".csv">
+<button id="uploadBtn">טען קובץ</button>
 
 <script>
-function testUpload() {
-  alert("הכפתור עבד");
+const supabase = window.supabase.createClient(
+  "https://tbciaxkeoztegfqiiozp.supabase.co",
+  "sb_publishable_uVgowcNS5R846L874cXoZQ_6Hm-dFql"
+);
+
+document.getElementById("uploadBtn").addEventListener("click", uploadCSV);
+
+async function uploadCSV() {
+  alert("הפונקציה התחילה");
+
+  const fileInput = document.getElementById('csvFile');
+  const file = fileInput.files[0];
+
+  if (!file) {
+    alert("לא נבחר קובץ");
+    return;
+  }
+
+  const text = await file.text();
+  alert("הקובץ נקרא");
+
+  const rows = text.split('\n').slice(1);
+
+  for (let row of rows) {
+    if (!row.trim()) continue;
+
+    const [date, description, category, amount] = row.split(',');
+
+    const { error } = await supabase
+      .from('transactions')
+      .insert({
+        date: date.trim(),
+        description: description.trim(),
+        category: category.trim(),
+        amount: parseFloat(amount)
+      });
+
+    if (error) {
+      alert("שגיאה מהשרת: " + error.message);
+      return;
+    }
+  }
+
+  alert("הטעינה הסתיימה בהצלחה");
 }
 </script>
 
