@@ -20,22 +20,18 @@ document.getElementById("btn").addEventListener("click", async function() {
 
   alert("הכפתור נלחץ");
 
-  const { data, error } = await client
+  const response = await client
     .from('transactions')
     .insert([
       {
         date: "2026-03-03",
-        description: "בדיקה",
+        description: "בדיקה חדשה",
         category: "test",
         amount: 1
       }
     ]);
 
-  if (error) {
-    alert("שגיאה: " + error.message);
-  } else {
-    alert("נכתב למסד בהצלחה");
-  }
+  alert(JSON.stringify(response));
 
 });
 </script>
