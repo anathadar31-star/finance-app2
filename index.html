@@ -2,22 +2,69 @@
 <html lang="he">
 <head>
 <meta charset="UTF-8">
-<title>בדיקת Supabase</title>
+<title>בדיקה מלאה</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<h2>בדיקת Supabase</h2>
+<h2>בדיקה מלאה</h2>
 
-<button onclick="test()">בדיקה</button>
+<input type="file" id="fileInput">
+<button onclick="upload()">טעינה</button>
 
 <script>
-function test() {
-  if (window.supabase) {
-    alert("Supabase נטען");
-  } else {
-    alert("Supabase לא נטען");
+const supabaseUrl = "https://tbciaxkeoztegfqiiozp.supabase.co";
+const supabaseKey = "sb_publishable_uVgowcNS5R846L874cXoZQ_6Hm-dFql";
+
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+async function upload() {
+
+  alert("שלב 1 - התחלה");
+
+  const file = document.getElementById("fileInput").files[0];
+
+  if (!file) {
+    alert("לא נבחר קובץ");
+    return;
   }
+
+  alert("שלב 2 - יש קובץ");
+
+  const reader = new FileReader();
+
+  reader.onload = async function(e) {
+
+    alert("שלב 3 - נקרא קובץ");
+
+    const text = e.target.result;
+    const lines = text.split("\n");
+
+    alert("שלב 4 - שורות: " + lines.length);
+
+    const parts = lines[0].split(",");
+
+    const row = {
+      date: parts[0].trim(),
+      description: parts[1].trim(),
+      category: parts[2].trim(),
+      amount: Number(parts[3].trim())
+    };
+
+    alert("שלב 5 - לפני שליחה למסד");
+
+    const { data, error } = await supabase
+      .from("transactions")
+      .insert([row]);
+
+    if (error) {
+      alert("שגיאה: " + error.message);
+    } else {
+      alert("הכנסה הצליחה");
+    }
+  };
+
+  reader.readAsText(file);
 }
 </script>
 
