@@ -2,11 +2,11 @@
 <html lang="he">
 <head>
 <meta charset="UTF-8">
-<title>בדיקת CSV</title>
+<title>בדיקת קריאה 2</title>
 </head>
 <body>
 
-<h2>בדיקת קריאת קובץ</h2>
+<h2>בדיקה</h2>
 
 <input type="file" id="fileInput">
 <button onclick="readFile()">בדיקה</button>
@@ -20,11 +20,19 @@ function readFile() {
     return;
   }
 
-  alert("שם הקובץ: " + file.name);
+  alert("גודל הקובץ: " + file.size + " bytes");
 
-  file.text().then(text => {
-    alert("תוכן הקובץ:\n\n" + text);
-  });
+  const reader = new FileReader();
+
+  reader.onload = function(e) {
+    alert("תוכן:\n\n" + e.target.result);
+  };
+
+  reader.onerror = function() {
+    alert("שגיאה בקריאה");
+  };
+
+  reader.readAsText(file);
 }
 </script>
 
