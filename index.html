@@ -2,70 +2,102 @@
 <html lang="he">
 <head>
 <meta charset="UTF-8">
-<title>בדיקה מלאה</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<title>טעינת CSV למסד</title>
+<style>
+body{
+font-family:Arial;
+direction:rtl;
+padding:30px;
+}
+
+button{
+padding:10px 20px;
+font-size:16px;
+margin-top:10px;
+}
+
+#result{
+margin-top:20px;
+font-weight:bold;
+}
+</style>
 </head>
 <body>
 
-<h2>בדיקה מלאה</h2>
+<h2>טעינת קובץ CSV למסד</h2>
 
-<input type="file" id="fileInput">
-<button onclick="upload()">טעינה</button>
+<input type="file" id="fileInput" accept=".csv"><br>
+<button onclick="uploadCSV()">טעינה למסד</button>
+
+<div id="result"></div>
 
 <script>
-const supabaseUrl = "https://tbciaxkeoztegfqiiozp.supabase.co";
-const supabaseKey = "sb_publishable_uVgowcNS5R846L874cXoZQ_6Hm-dFql";
 
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+const SUPABASE_URL = "https://tbciaxkeoztegfqiiozp.supabase.co";
+const SUPABASE_KEY = "sb_publishable_uVgowcNS5R846L874cXoZQ_6Hm-dFql";
 
-async function upload() {
+async function uploadCSV(){
 
-  alert("שלב 1 - התחלה");
+const file = document.getElementById("fileInput").files[0];
 
-  const file = document.getElementById("fileInput").files[0];
-
-  if (!file) {
-    alert("לא נבחר קובץ");
-    return;
-  }
-
-  alert("שלב 2 - יש קובץ");
-
-  const reader = new FileReader();
-
-  reader.onload = async function(e) {
-
-    alert("שלב 3 - נקרא קובץ");
-
-    const text = e.target.result;
-    const lines = text.split("\n");
-
-    alert("שלב 4 - שורות: " + lines.length);
-
-    const parts = lines[0].split(",");
-
-    const row = {
-      date: parts[0].trim(),
-      description: parts[1].trim(),
-      category: parts[2].trim(),
-      amount: Number(parts[3].trim())
-    };
-
-    alert("שלב 5 - לפני שליחה למסד");
-
-    const { data, error } = await supabase
-      .from("transactions")
-      .insert([row]);
-
-    if (error) {
-      alert("שגיאה: " + error.message);
-    } else {
-      alert("הכנסה הצליחה");
-    }
-  };
-
-  reader.readAsText(file);
+if(!file){
+alert("לא נבחר קובץ");
+return;
 }
+
+const text = await file.text();
+
+const rows = text.split("\n");
+
+let inserted = 0;
+let duplicates = 0;
+
+for(let line of rows){
+
+if(!line.trim()) continue;
+
+const parts = line.split(",");
+
+if(parts.length < 4) continue;
+
+const record = {
+date: parts[0].trim(),
+description: parts[1].trim(),
+category: parts[2].trim(),
+amount: Number(parts[3].trim())
+};
+
+const response = await fetch(
+SUPABASE_URL + "/rest/v1/transactions",
+{
+method:"POST",
+headers:{
+"apikey":SUPABASE_KEY,
+"Authorization":"Bearer " + SUPABASE_KEY,
+"Content-Type":"application/json",
+"Prefer":"return=minimal"
+},
+body:JSON.stringify(record)
+}
+);
+
+if(response.status === 409){
+duplicates++;
+}else if(response.ok){
+inserted++;
+}else{
+const error = await response.text();
+alert("שגיאה:\n" + error);
+return;
+}
+
+}
+
+document.getElementById("result").innerText =
+"סיום טעינה\nנוספו: " + inserted + "\nכפילויות: " + duplicates;
+
+}
+
 </script>
 
 </body>
