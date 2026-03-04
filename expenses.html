@@ -2,25 +2,37 @@
 <html lang="he">
 <head>
 <meta charset="UTF-8">
-<title>רשימת הוצאות</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>רשימת תנועות</title>
 
 <style>
 
 body{
 font-family:Arial;
 direction:rtl;
-padding:30px;
-background:#f7f7f7;
+padding:20px;
+background:#f5f5f5;
+}
+
+h1{
+margin-bottom:20px;
 }
 
 .nav{
-margin-bottom:30px;
+margin-bottom:20px;
 }
 
 button{
-padding:10px 20px;
+padding:10px 16px;
 margin-left:10px;
+border-radius:6px;
+border:1px solid #444;
+background:white;
 cursor:pointer;
+}
+
+input{
+margin-bottom:20px;
 }
 
 table{
@@ -39,7 +51,15 @@ th{
 background:#f0f0f0;
 }
 
+.total{
+margin-top:20px;
+font-size:20px;
+font-weight:bold;
+}
+
 </style>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 </head>
 
@@ -47,51 +67,107 @@ background:#f0f0f0;
 
 <div class="nav">
 
-<button onclick="location.href='index.html'">
-דף ראשי
-</button>
+<button onclick="location.href='index.html'">דף ראשי</button>
 
-<button onclick="location.href='dashboard.html'">
-דשבורד
-</button>
+<button onclick="location.href='dashboard.html'">דשבורד</button>
 
 </div>
 
-<h1>רשימת הוצאות</h1>
+<h1>טעינת תנועות בנק</h1>
+
+<input type="file" id="fileInput" accept=".xlsx">
 
 <table>
 
 <thead>
+
 <tr>
 <th>תאריך</th>
 <th>תיאור</th>
 <th>סכום</th>
 </tr>
+
 </thead>
 
-<tbody>
-
-<tr>
-<td>2026-03-02</td>
-<td>קפה</td>
-<td>15 ₪</td>
-</tr>
-
-<tr>
-<td>2026-03-03</td>
-<td>סופר</td>
-<td>220 ₪</td>
-</tr>
-
-<tr>
-<td>2026-03-04</td>
-<td>דלק</td>
-<td>350 ₪</td>
-</tr>
-
-</tbody>
+<tbody id="tableBody"></tbody>
 
 </table>
 
+<div class="total" id="total"></div>
+
+<script>
+
+document.getElementById("fileInput").addEventListener("change", loadFile);
+
+function loadFile(e){
+
+const file = e.target.files[0];
+
+const reader = new FileReader();
+
+reader.onload = function(event){
+
+const data = new Uint8Array(event.target.result);
+
+const workbook = XLSX.read(data,{type:"array"});
+
+const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+const rows = XLSX.utils.sheet_to_json(sheet);
+
+fillTable(rows);
+
+};
+
+reader.readAsArrayBuffer(file);
+
+}
+
+function fillTable(rows){
+
+const tbody = document.getElementById("tableBody");
+
+tbody.innerHTML="";
+
+let total = 0;
+
+rows.forEach(r=>{
+
+const date = r["תאריך"] || "";
+
+const desc =
+r["פרטים"] ||
+r["הפעולה"] ||
+r["עבור"] ||
+"";
+
+const debit = parseFloat(r["חובה"]) || 0;
+
+if(debit>0){
+
+const tr = document.createElement("tr");
+
+tr.innerHTML = `
+<td>${date}</td>
+<td>${desc}</td>
+<td>${debit.toFixed(2)} ₪</td>
+`;
+
+tbody.appendChild(tr);
+
+total += debit;
+
+}
+
+});
+
+document.getElementById("total").innerText =
+"סה״כ הוצאות: " + total.toFixed(2) + " ₪";
+
+}
+
+</script>
+
 </body>
+
 </html>
