@@ -32,10 +32,6 @@ cursor:pointer;
 font-size:16px;
 }
 
-input{
-margin-left:10px;
-}
-
 table{
 border-collapse:collapse;
 width:100%;
@@ -68,11 +64,8 @@ font-weight:bold;
 <body>
 
 <div class="nav">
-
 <button onclick="location.href='index.html'">דף ראשי</button>
-
 <button onclick="location.href='dashboard.html'">דשבורד</button>
-
 </div>
 
 <h1>טעינת תנועות בנק</h1>
@@ -84,13 +77,11 @@ font-weight:bold;
 <table>
 
 <thead>
-
 <tr>
 <th>תאריך</th>
 <th>תיאור</th>
 <th>סכום</th>
 </tr>
-
 </thead>
 
 <tbody id="tableBody"></tbody>
@@ -122,13 +113,28 @@ const workbook = XLSX.read(data,{type:"array"});
 
 const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
-const rows = XLSX.utils.sheet_to_json(sheet);
+const rows = XLSX.utils.sheet_to_json(sheet,{defval:""});
+
+console.log(rows);
 
 fillTable(rows);
 
 };
 
 reader.readAsArrayBuffer(file);
+
+}
+
+function parseNumber(value){
+
+if(!value) return 0;
+
+value = value.toString()
+.replace(",", "")
+.replace("₪","")
+.trim();
+
+return parseFloat(value) || 0;
 
 }
 
@@ -142,7 +148,7 @@ let total = 0;
 
 rows.forEach(r=>{
 
-const date = r["תאריך"] || "";
+const date = r["תאריך"];
 
 const desc =
 r["פרטים"] ||
@@ -150,7 +156,10 @@ r["הפעולה"] ||
 r["עבור"] ||
 "";
 
-const debit = parseFloat(r["חובה"]) || 0;
+const debit =
+parseNumber(r["חובה"]) ||
+parseNumber(r["Debit"]) ||
+parseNumber(r["סכום חובה"]);
 
 if(debit>0){
 
