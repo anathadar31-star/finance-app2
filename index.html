@@ -2,7 +2,7 @@
 <html lang="he">
 <head>
 <meta charset="UTF-8">
-<title>טעינת CSV למסד</title>
+<title>דשבורד הוצאות</title>
 
 <style>
 body{
@@ -11,103 +11,93 @@ direction:rtl;
 padding:30px;
 }
 
-button{
-padding:10px 20px;
-font-size:16px;
-margin-top:10px;
+table{
+border-collapse:collapse;
+width:100%;
+margin-top:20px;
 }
 
-#result{
+th,td{
+border:1px solid #ddd;
+padding:8px;
+text-align:right;
+}
+
+th{
+background:#f3f3f3;
+}
+
+#total{
 margin-top:20px;
+font-size:20px;
 font-weight:bold;
-white-space:pre-line;
 }
 </style>
 
 </head>
+
 <body>
 
-<h2>טעינת CSV למסד</h2>
+<h2>רשימת הוצאות</h2>
 
-<input type="file" id="fileInput" accept=".csv"><br>
-<button onclick="uploadCSV()">טעינה למסד</button>
+<button onclick="loadData()">טען נתונים</button>
 
-<div id="result"></div>
+<table id="table">
+<thead>
+<tr>
+<th>תאריך</th>
+<th>תיאור</th>
+<th>קטגוריה</th>
+<th>סכום</th>
+</tr>
+</thead>
+
+<tbody></tbody>
+</table>
+
+<div id="total"></div>
 
 <script>
 
 const SUPABASE_URL="https://tbciaxkeoztegfqiiozp.supabase.co";
 const SUPABASE_KEY="sb_publishable_uVgowcNS5R846L874cXoZQ_6Hm-dFql";
 
-async function uploadCSV(){
+async function loadData(){
 
-const file=document.getElementById("fileInput").files[0];
-
-if(!file){
-alert("לא נבחר קובץ");
-return;
-}
-
-const text=await file.text();
-
-let rows=text.split("\n");
-
-/* מדלג על שורת כותרת */
-if(rows[0].toLowerCase().includes("date")){
-rows.shift();
-}
-
-let inserted=0;
-let duplicates=0;
-let errors=0;
-
-for(let line of rows){
-
-if(!line.trim()) continue;
-
-const parts=line.split(",");
-
-if(parts.length<4){
-errors++;
-continue;
-}
-
-const record={
-date:parts[0].trim(),
-description:parts[1].trim(),
-category:parts[2].trim(),
-amount:Number(parts[3].trim())
-};
-
-const response=await fetch(
-SUPABASE_URL+"/rest/v1/transactions",
+const res=await fetch(
+SUPABASE_URL+"/rest/v1/transactions?select=*",
 {
-method:"POST",
 headers:{
 apikey:SUPABASE_KEY,
-Authorization:"Bearer "+SUPABASE_KEY,
-"Content-Type":"application/json",
-Prefer:"return=minimal"
-},
-body:JSON.stringify(record)
+Authorization:"Bearer "+SUPABASE_KEY
 }
-);
+});
 
-if(response.status===409){
-duplicates++;
-}else if(response.ok){
-inserted++;
-}else{
-errors++;
+const data=await res.json();
+
+const tbody=document.querySelector("tbody");
+tbody.innerHTML="";
+
+let total=0;
+
+for(let row of data){
+
+const tr=document.createElement("tr");
+
+tr.innerHTML=`
+<td>${row.date}</td>
+<td>${row.description}</td>
+<td>${row.category}</td>
+<td>${row.amount}</td>
+`;
+
+tbody.appendChild(tr);
+
+total+=Number(row.amount);
+
 }
 
-}
-
-document.getElementById("result").innerText=
-"סיום טעינה\n"+
-"נוספו: "+inserted+"\n"+
-"כפילויות: "+duplicates+"\n"+
-"שגיאות: "+errors;
+document.getElementById("total").innerText="סה״כ הוצאות: "+total+" ₪";
 
 }
 
