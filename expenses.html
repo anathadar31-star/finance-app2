@@ -10,28 +10,33 @@ body{
 font-family:Arial;
 direction:rtl;
 padding:30px;
+background:#f7f7f7;
+}
+
+.nav{
+margin-bottom:30px;
+}
+
+button{
+padding:10px 20px;
+margin-left:10px;
+cursor:pointer;
 }
 
 table{
 border-collapse:collapse;
 width:100%;
-margin-top:20px;
+background:white;
 }
 
 th,td{
-border:1px solid #ccc;
+border:1px solid #ddd;
 padding:10px;
 text-align:right;
 }
 
 th{
-background:#f2f2f2;
-}
-
-button{
-padding:10px 20px;
-margin-bottom:20px;
-cursor:pointer;
+background:#f0f0f0;
 }
 
 </style>
@@ -40,9 +45,17 @@ cursor:pointer;
 
 <body>
 
-<button onclick="location.href='dashboard.html'">
-⬅ חזרה לדשבורד
+<div class="nav">
+
+<button onclick="location.href='index.html'">
+דף ראשי
 </button>
+
+<button onclick="location.href='dashboard.html'">
+דשבורד
+</button>
+
+</div>
 
 <h1>רשימת הוצאות</h1>
 
@@ -68,6 +81,12 @@ cursor:pointer;
 <td>2026-03-03</td>
 <td>סופר</td>
 <td>220 ₪</td>
+</tr>
+
+<tr>
+<td>2026-03-04</td>
+<td>דלק</td>
+<td>350 ₪</td>
 </tr>
 
 </tbody>
