@@ -2,7 +2,7 @@
 <html lang="he">
 <head>
 <meta charset="UTF-8">
-<title>דשבורד הוצאות</title>
+<title>דשבורד</title>
 
 <style>
 
@@ -10,13 +10,30 @@ body{
 font-family:Arial;
 direction:rtl;
 padding:30px;
+background:#f7f7f7;
+}
+
+.nav{
+margin-bottom:30px;
 }
 
 button{
-padding:12px 24px;
-font-size:16px;
-margin-bottom:20px;
+padding:10px 20px;
+margin-left:10px;
 cursor:pointer;
+}
+
+.card{
+background:white;
+padding:25px;
+margin-top:20px;
+border-radius:8px;
+box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+
+.total{
+font-size:28px;
+font-weight:bold;
 }
 
 </style>
@@ -25,13 +42,29 @@ cursor:pointer;
 
 <body>
 
+<div class="nav">
+
 <button onclick="location.href='index.html'">
-⬅ חזרה לדף הראשי
+דף ראשי
 </button>
+
+<button onclick="location.href='expenses.html'">
+רשימת הוצאות
+</button>
+
+</div>
 
 <h1>דשבורד הוצאות</h1>
 
-<p>הדף החדש עובד</p>
+<div class="card">
+
+<p>סה״כ הוצאות החודש:</p>
+
+<div class="total">
+1478.5 ₪
+</div>
+
+</div>
 
 </body>
 </html>
