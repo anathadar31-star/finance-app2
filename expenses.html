@@ -1,13 +1,64 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>בדיקת טעינת אקסל</title>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<style>
+
+body{
+font-family:Arial;
+direction:rtl;
+padding:20px;
+}
+
+button{
+padding:10px 16px;
+margin-left:10px;
+}
+
+pre{
+background:#f4f4f4;
+padding:10px;
+margin-top:20px;
+white-space:pre-wrap;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>בדיקת קריאת Excel</h2>
+
+<input type="file" id="fileInput" accept=".xlsx">
+
+<button onclick="loadFile()">טען קובץ</button>
+
+<h3>נתונים שנקראו מהקובץ:</h3>
+
+<pre id="output"></pre>
+
+<script>
+
+function loadFile(){
+
+const file = document.getElementById("fileInput").files[0];
+
 if(!file){
-alert("בחרי קובץ קודם");
+alert("בחרי קובץ");
 return;
 }
 
 const reader = new FileReader();
 
-reader.onload = function(event){
+reader.onload = function(e){
 
-const data = new Uint8Array(event.target.result);
+const data = new Uint8Array(e.target.result);
 
 const workbook = XLSX.read(data,{type:"array"});
 
@@ -15,9 +66,8 @@ const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
 const rows = XLSX.utils.sheet_to_json(sheet,{defval:""});
 
-console.log(rows);
-
-fillTable(rows);
+document.getElementById("output").textContent =
+JSON.stringify(rows.slice(0,5),null,2);
 
 };
 
@@ -25,67 +75,7 @@ reader.readAsArrayBuffer(file);
 
 }
 
-function parseNumber(value){
-
-if(!value) return 0;
-
-value = value.toString()
-.replace(",", "")
-.replace("₪","")
-.trim();
-
-return parseFloat(value) || 0;
-
-}
-
-function fillTable(rows){
-
-const tbody = document.getElementById("tableBody");
-
-tbody.innerHTML="";
-
-let total = 0;
-
-rows.forEach(r=>{
-
-const date = r["תאריך"];
-
-const desc =
-r["פרטים"] ||
-r["הפעולה"] ||
-r["עבור"] ||
-"";
-
-const debit =
-parseNumber(r["חובה"]) ||
-parseNumber(r["Debit"]) ||
-parseNumber(r["סכום חובה"]);
-
-if(debit>0){
-
-const tr = document.createElement("tr");
-
-tr.innerHTML = `
-<td>${date}</td>
-<td>${desc}</td>
-<td>${debit.toFixed(2)} ₪</td>
-`;
-
-tbody.appendChild(tr);
-
-total += debit;
-
-}
-
-});
-
-document.getElementById("total").innerText =
-"סה״כ הוצאות: " + total.toFixed(2) + " ₪";
-
-}
-
 </script>
 
 </body>
-
 </html>
