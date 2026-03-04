@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>רשימת תנועות</title>
+<title>טעינת תנועות בנק</title>
 
 <style>
 
@@ -23,22 +23,24 @@ margin-bottom:20px;
 }
 
 button{
-padding:10px 16px;
+padding:10px 18px;
 margin-left:10px;
 border-radius:6px;
 border:1px solid #444;
 background:white;
 cursor:pointer;
+font-size:16px;
 }
 
 input{
-margin-bottom:20px;
+margin-left:10px;
 }
 
 table{
 border-collapse:collapse;
 width:100%;
 background:white;
+margin-top:20px;
 }
 
 th,td{
@@ -77,6 +79,8 @@ font-weight:bold;
 
 <input type="file" id="fileInput" accept=".xlsx">
 
+<button onclick="loadFile()">טען קובץ</button>
+
 <table>
 
 <thead>
@@ -97,11 +101,16 @@ font-weight:bold;
 
 <script>
 
-document.getElementById("fileInput").addEventListener("change", loadFile);
+function loadFile(){
 
-function loadFile(e){
+const input = document.getElementById("fileInput");
 
-const file = e.target.files[0];
+const file = input.files[0];
+
+if(!file){
+alert("בחרי קובץ קודם");
+return;
+}
 
 const reader = new FileReader();
 
