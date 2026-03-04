@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Finance Dashboard</title>
+<title>Bank</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600&display=swap" rel="stylesheet">
 
@@ -10,292 +10,154 @@
 
 body{
 font-family:'Assistant',sans-serif;
-background:linear-gradient(135deg,#f7f9fc,#eef3f8);
-padding:30px;
+background:linear-gradient(135deg,#f5f7fb,#eef2f7);
+padding:20px;
 margin:0;
 }
 
 h1{
 text-align:center;
-margin-bottom:30px;
 color:#333;
 }
 
 .menu{
-display:flex;
-justify-content:center;
-gap:10px;
+text-align:center;
 margin-bottom:20px;
-flex-wrap:wrap;
 }
 
 button{
 background:#4a90e2;
 color:white;
 border:none;
-padding:10px 18px;
+padding:10px 15px;
+margin:5px;
 border-radius:6px;
-font-size:15px;
 cursor:pointer;
-transition:0.2s;
 }
 
 button:hover{
-background:#357abd;
+background:#357ABD;
 }
 
-input[type=file]{
+input{
+margin:10px auto;
 display:block;
-margin:20px auto;
-}
-
-.summary{
-display:flex;
-gap:20px;
-margin-bottom:30px;
-flex-wrap:wrap;
-}
-
-.card{
-background:white;
-padding:20px;
-border-radius:10px;
-box-shadow:0 4px 10px rgba(0,0,0,0.05);
-flex:1;
-min-width:180px;
-text-align:center;
-font-size:18px;
-}
-
-.card span{
-display:block;
-font-size:24px;
-font-weight:600;
-margin-top:5px;
 }
 
 table{
 width:100%;
 border-collapse:collapse;
 background:white;
-border-radius:10px;
-overflow:hidden;
-box-shadow:0 4px 10px rgba(0,0,0,0.05);
+margin-top:20px;
+}
+
+th,td{
+padding:10px;
+border-bottom:1px solid #ddd;
+text-align:center;
 }
 
 th{
-background:#f1f4f8;
-padding:12px;
-text-align:right;
-font-weight:600;
+background:#eef3f8;
 }
 
-td{
-padding:10px;
-border-top:1px solid #eee;
-text-align:right;
+.debit{
+color:#d9534f;
 }
 
-tr:hover{
-background:#fafafa;
+.credit{
+color:#28a745;
 }
 
 </style>
-
 </head>
 
 <body>
 
-<h1>ניהול כספים אישי</h1>
+<h1>תנועות בנק</h1>
 
 <div class="menu">
 
-<button onclick="location.href='index.html'">דף ראשי</button>
-<button onclick="location.href='upload.html'">טעינת קובץ</button>
-<button onclick="saveData()">שמור נתונים</button>
-<button onclick="clearData()">נקה נתונים</button>
+<button onclick="location.href='dashboard.html'">Dashboard</button>
+
+<button onclick="location.href='credit.html'">אשראי</button>
 
 </div>
 
 <input type="file" id="fileInput">
 
-<div class="summary">
-
-<div class="card">
-סה"כ הכנסות
-<span id="income">0</span>
-</div>
-
-<div class="card">
-סה"כ הוצאות
-<span id="expense">0</span>
-</div>
-
-<div class="card">
-יתרה
-<span id="balance">0</span>
-</div>
-
-</div>
-
-<table id="table">
+<table>
 
 <thead>
+
 <tr>
-<th>תאריך</th>
-<th>תיאור</th>
-<th>חובה</th>
-<th>זכות</th>
-<th>קטגוריה</th>
-<th>הערה</th>
+<th>date</th>
+<th>description</th>
+<th>debit</th>
+<th>credit</th>
+<th>category</th>
+<th>note</th>
 </tr>
+
 </thead>
 
-<tbody></tbody>
+<tbody id="tableBody"></tbody>
 
 </table>
 
 <script>
 
-let currentData=[];
+document.getElementById("fileInput").addEventListener("change",loadFile)
 
-const input=document.getElementById("fileInput");
+function loadFile(e){
 
-input.addEventListener("change",function(e){
+let file=e.target.files[0]
 
-const file=e.target.files[0];
-const reader=new FileReader();
+if(!file){
+alert("בחרי קובץ")
+return
+}
+
+let reader=new FileReader()
 
 reader.onload=function(event){
 
-const text=event.target.result;
-parseCSV(text);
+let rows=event.target.result.split("\n")
+
+let body=document.getElementById("tableBody")
+
+body.innerHTML=""
+
+rows.slice(1).forEach(r=>{
+
+let cols=r.split(",")
+
+if(cols.length<2)return
+
+let tr=document.createElement("tr")
+
+cols.forEach((c,i)=>{
+
+let td=document.createElement("td")
+
+td.textContent=c
+
+if(i==2) td.className="debit"
+if(i==3) td.className="credit"
+
+tr.appendChild(td)
+
+})
+
+body.appendChild(tr)
+
+})
 
 }
 
-reader.readAsText(file);
-
-});
-
-function parseCSV(text){
-
-const rows=text.split("\n");
-
-const tbody=document.querySelector("#table tbody");
-
-tbody.innerHTML="";
-
-let totalIncome=0;
-let totalExpense=0;
-
-currentData=[];
-
-for(let i=1;i<rows.length;i++){
-
-const cols=rows[i].split(",");
-
-if(cols.length<5) continue;
-
-const date=cols[0];
-const desc=cols[1];
-const debit=parseFloat(cols[2])||0;
-const credit=parseFloat(cols[3])||0;
-const category=cols[4]||"";
-const note=cols[5]||"";
-
-totalIncome+=credit;
-totalExpense+=debit;
-
-currentData.push(cols);
-
-const tr=document.createElement("tr");
-
-tr.innerHTML=`
-<td>${date}</td>
-<td>${desc}</td>
-<td>${debit}</td>
-<td>${credit}</td>
-<td>${category}</td>
-<td>${note}</td>
-`;
-
-tbody.appendChild(tr);
+reader.readAsText(file)
 
 }
-
-document.getElementById("income").innerText=totalIncome.toFixed(2);
-document.getElementById("expense").innerText=totalExpense.toFixed(2);
-document.getElementById("balance").innerText=(totalIncome-totalExpense).toFixed(2);
-
-}
-
-function saveData(){
-
-localStorage.setItem("financeData",JSON.stringify(currentData));
-
-alert("הנתונים נשמרו");
-
-}
-
-function loadData(){
-
-const saved=localStorage.getItem("financeData");
-
-if(!saved) return;
-
-const rows=JSON.parse(saved);
-
-const tbody=document.querySelector("#table tbody");
-
-tbody.innerHTML="";
-
-let totalIncome=0;
-let totalExpense=0;
-
-rows.forEach(cols=>{
-
-const debit=parseFloat(cols[2])||0;
-const credit=parseFloat(cols[3])||0;
-
-totalIncome+=credit;
-totalExpense+=debit;
-
-const tr=document.createElement("tr");
-
-tr.innerHTML=`
-<td>${cols[0]}</td>
-<td>${cols[1]}</td>
-<td>${cols[2]}</td>
-<td>${cols[3]}</td>
-<td>${cols[4]}</td>
-<td>${cols[5]}</td>
-`;
-
-tbody.appendChild(tr);
-
-});
-
-document.getElementById("income").innerText=totalIncome.toFixed(2);
-document.getElementById("expense").innerText=totalExpense.toFixed(2);
-document.getElementById("balance").innerText=(totalIncome-totalExpense).toFixed(2);
-
-}
-
-function clearData(){
-
-localStorage.removeItem("financeData");
-
-document.querySelector("#table tbody").innerHTML="";
-
-document.getElementById("income").innerText=0;
-document.getElementById("expense").innerText=0;
-document.getElementById("balance").innerText=0;
-
-alert("הנתונים נמחקו");
-
-}
-
-loadData();
 
 </script>
 
