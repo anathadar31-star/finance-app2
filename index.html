@@ -2,7 +2,7 @@
 <html lang="he">
 <head>
 <meta charset="UTF-8">
-<title>רשימת הוצאות</title>
+<title>אפליקציית הוצאות</title>
 
 <style>
 
@@ -10,39 +10,14 @@ body{
 font-family:Arial;
 direction:rtl;
 padding:30px;
-}
-
-h1{
 text-align:center;
 }
 
 button{
-padding:10px 20px;
-margin:20px 0;
-font-size:16px;
-}
-
-table{
-border-collapse:collapse;
-width:100%;
-margin-top:20px;
-}
-
-th,td{
-border:1px solid #ddd;
-padding:10px;
-text-align:right;
-}
-
-th{
-background:#f2f2f2;
-}
-
-#total{
-margin-top:25px;
-font-size:22px;
-font-weight:bold;
-text-align:center;
+padding:12px 24px;
+font-size:18px;
+margin:15px;
+cursor:pointer;
 }
 
 </style>
@@ -51,73 +26,15 @@ text-align:center;
 
 <body>
 
-<h1>רשימת הוצאות</h1>
+<h1>אפליקציית ניהול הוצאות</h1>
 
-<button onclick="loadData()">טען נתונים</button>
+<button onclick="location.href='dashboard.html'">
+צפייה בהוצאות
+</button>
 
-<table>
-
-<thead>
-<tr>
-<th>תאריך</th>
-<th>תיאור</th>
-<th>קטגוריה</th>
-<th>סכום</th>
-</tr>
-</thead>
-
-<tbody id="tbody"></tbody>
-
-</table>
-
-<div id="total"></div>
-
-<script>
-
-const SUPABASE_URL="https://tbciaxkeoztegfqiiozp.supabase.co";
-const SUPABASE_KEY="sb_publishable_uVgowcNS5R846L874cXoZQ_6Hm-dFql";
-
-async function loadData(){
-
-const response = await fetch(
-SUPABASE_URL + "/rest/v1/transactions?select=*",
-{
-headers:{
-apikey:SUPABASE_KEY,
-Authorization:"Bearer " + SUPABASE_KEY
-}
-});
-
-const data = await response.json();
-
-const tbody = document.getElementById("tbody");
-tbody.innerHTML="";
-
-let total = 0;
-
-data.forEach(row=>{
-
-const tr=document.createElement("tr");
-
-tr.innerHTML=`
-<td>${row.date}</td>
-<td>${row.description}</td>
-<td>${row.category}</td>
-<td>${row.amount}</td>
-`;
-
-tbody.appendChild(tr);
-
-total += Number(row.amount);
-
-});
-
-document.getElementById("total").innerText =
-"סה״כ הוצאות: " + total + " ₪";
-
-}
-
-</script>
+<button onclick="location.href='upload.html'">
+טעינת קובץ CSV
+</button>
 
 </body>
 </html>
