@@ -1,107 +1,31 @@
-<!DOCTYPE html>
-<html lang="he">
-<head>
-<meta charset="UTF-8">
-<title>דשבורד הוצאות</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<style>
-body{
-font-family:Arial;
-direction:rtl;
-padding:30px;
-}
-
-table{
-border-collapse:collapse;
-width:100%;
-margin-top:20px;
-}
-
-th,td{
-border:1px solid #ddd;
-padding:8px;
-text-align:right;
-}
-
-th{
-background:#f3f3f3;
-}
-
-#total{
-margin-top:20px;
-font-size:20px;
-font-weight:bold;
-}
-</style>
-
-</head>
-
-<body>
-
-<h2>רשימת הוצאות</h2>
-
-<button onclick="loadData()">טען נתונים</button>
-
-<table id="table">
-<thead>
-<tr>
-<th>תאריך</th>
-<th>תיאור</th>
-<th>קטגוריה</th>
-<th>סכום</th>
-</tr>
-</thead>
-
-<tbody></tbody>
-</table>
-
-<div id="total"></div>
+<canvas id="chart" height="200"></canvas>
 
 <script>
 
-const SUPABASE_URL="https://tbciaxkeoztegfqiiozp.supabase.co";
-const SUPABASE_KEY="sb_publishable_uVgowcNS5R846L874cXoZQ_6Hm-dFql";
+function buildChart(data){
 
-async function loadData(){
+const byCategory={}
 
-const res=await fetch(
-SUPABASE_URL+"/rest/v1/transactions?select=*",
-{
-headers:{
-apikey:SUPABASE_KEY,
-Authorization:"Bearer "+SUPABASE_KEY
+data.forEach(r=>{
+if(!byCategory[r.category]) byCategory[r.category]=0
+byCategory[r.category]+=Number(r.amount)
+})
+
+const labels=Object.keys(byCategory)
+const values=Object.values(byCategory)
+
+new Chart(document.getElementById("chart"),{
+type:'pie',
+data:{
+labels:labels,
+datasets:[{
+data:values
+}]
 }
-});
-
-const data=await res.json();
-
-const tbody=document.querySelector("tbody");
-tbody.innerHTML="";
-
-let total=0;
-
-for(let row of data){
-
-const tr=document.createElement("tr");
-
-tr.innerHTML=`
-<td>${row.date}</td>
-<td>${row.description}</td>
-<td>${row.category}</td>
-<td>${row.amount}</td>
-`;
-
-tbody.appendChild(tr);
-
-total+=Number(row.amount);
-
-}
-
-document.getElementById("total").innerText="סה״כ הוצאות: "+total+" ₪";
+})
 
 }
 
 </script>
-
-</body>
-</html>
