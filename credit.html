@@ -97,7 +97,24 @@ font-weight:bold;
 חזרה לתפריט
 </button>
 
+
 <script>
+
+function findColumn(headers,name){
+
+name=name.toLowerCase();
+
+for(let i=0;i<headers.length;i++){
+
+let h=headers[i].toLowerCase().replace("_","").replace(" ","");
+
+if(h.includes(name)) return i;
+
+}
+
+return -1;
+
+}
 
 document.getElementById("csvFile").addEventListener("change", function(event){
 
@@ -111,16 +128,13 @@ const rows = text.split("\n");
 
 const headers = rows[0].split(",");
 
-const dateIndex = headers.indexOf("date");
-const descIndex = headers.indexOf("description");
-const amountIndex = headers.indexOf("amount");
-const smartIndex = headers.indexOf("smart_category");
-const sourceIndex = headers.indexOf("source");
+const dateIndex = findColumn(headers,"date");
+const descIndex = findColumn(headers,"description");
+const amountIndex = findColumn(headers,"amount");
+const smartIndex = findColumn(headers,"smartcategory");
+const sourceIndex = findColumn(headers,"source");
 
-const tableBody = document.querySelector("#table tbody");
-tableBody.innerHTML="";
-
-let total = 0;
+let data=[];
 
 for(let i=1;i<rows.length;i++){
 
@@ -128,37 +142,7 @@ const cols = rows[i].split(",");
 
 if(cols.length < headers.length) continue;
 
-const source = cols[sourceIndex];
-const date = cols[dateIndex];
-const desc = cols[descIndex];
-const smart = cols[smartIndex];
-const amount = parseFloat(cols[amountIndex]);
+data.push({
 
-if(!isNaN(amount)) total += amount;
-
-const tr = document.createElement("tr");
-
-tr.innerHTML =
-"<td>"+source+"</td>"+
-"<td>"+date+"</td>"+
-"<td>"+desc+"</td>"+
-"<td>"+smart+"</td>"+
-"<td>"+amount.toFixed(2)+" ₪</td>";
-
-tableBody.appendChild(tr);
-
-}
-
-document.getElementById("total").innerHTML =
-"סה״כ הוצאות: " + total.toFixed(2) + " ₪";
-
-};
-
-reader.readAsText(file);
-
-});
-
-</script>
-
-</body>
-</html>
+source:cols[sourceIndex],
+date:cols[dateIndex
