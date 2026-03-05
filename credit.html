@@ -10,8 +10,14 @@ body{
 font-family:Arial;
 direction:rtl;
 text-align:center;
-background:#f4f6f9;
 padding:40px;
+background:#f4f6f9;
+}
+
+button{
+padding:12px 20px;
+font-size:16px;
+margin:10px;
 }
 
 table{
@@ -24,7 +30,7 @@ background:white;
 th{
 background:#4a90e2;
 color:white;
-padding:12px;
+padding:10px;
 }
 
 td{
@@ -32,32 +38,27 @@ padding:10px;
 border-bottom:1px solid #ddd;
 }
 
-button{
-margin-top:20px;
-padding:12px 20px;
-font-size:16px;
-}
-
 </style>
-
 </head>
 
 <body>
 
 <h1>כרטיסי אשראי</h1>
 
-<input type="file" id="csvFile" accept=".csv">
+<button onclick="document.getElementById('fileInput').click()">
+בחר קובץ CSV
+</button>
 
-<br><br>
+<input type="file" id="fileInput" accept=".csv" style="display:none">
 
-<table id="table">
+<table>
 <thead>
 <tr>
 <th>קטגוריה</th>
 <th>סכום</th>
 </tr>
 </thead>
-<tbody></tbody>
+<tbody id="tableBody"></tbody>
 </table>
 
 <br>
@@ -68,34 +69,35 @@ font-size:16px;
 
 <script>
 
-document
-.getElementById("csvFile")
-.addEventListener("change", function(event){
+document.getElementById("fileInput").addEventListener("change", function(event){
 
 const file = event.target.files[0];
+
+if(!file) return;
+
 const reader = new FileReader();
 
 reader.onload = function(e){
 
 const text = e.target.result;
 const rows = text.split("\n");
+const table = document.getElementById("tableBody");
 
-const tableBody = document.querySelector("#table tbody");
-tableBody.innerHTML="";
+table.innerHTML="";
 
 rows.forEach(row=>{
 
 const cols = row.split(",");
 
-if(cols.length>1){
+if(cols.length>=2){
 
 const tr = document.createElement("tr");
 
-tr.innerHTML=
+tr.innerHTML =
 "<td>"+cols[0]+"</td>"+
 "<td>"+cols[1]+"</td>";
 
-tableBody.appendChild(tr);
+table.appendChild(tr);
 
 }
 
