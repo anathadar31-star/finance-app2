@@ -37,7 +37,7 @@ background:#357ABD;
 table{
 margin:30px auto;
 border-collapse:collapse;
-width:85%;
+width:90%;
 background:white;
 box-shadow:0 2px 10px rgba(0,0,0,0.1);
 }
@@ -63,7 +63,6 @@ font-weight:bold;
 
 </head>
 
-
 <body>
 
 <h1>כרטיסי אשראי</h1>
@@ -78,9 +77,10 @@ font-weight:bold;
 
 <thead>
 <tr>
+<th>כרטיס</th>
 <th>תאריך</th>
 <th>תיאור</th>
-<th>קטגוריה</th>
+<th>קטגוריה חכמה</th>
 <th>סכום</th>
 </tr>
 </thead>
@@ -96,7 +96,6 @@ font-weight:bold;
 <button onclick="location.href='index.html'">
 חזרה לתפריט
 </button>
-
 
 <script>
 
@@ -115,7 +114,8 @@ const headers = rows[0].split(",");
 const dateIndex = headers.indexOf("date");
 const descIndex = headers.indexOf("description");
 const amountIndex = headers.indexOf("amount");
-const catIndex = headers.indexOf("category");
+const smartIndex = headers.indexOf("smart_category");
+const sourceIndex = headers.indexOf("source");
 
 const tableBody = document.querySelector("#table tbody");
 tableBody.innerHTML="";
@@ -128,19 +128,21 @@ const cols = rows[i].split(",");
 
 if(cols.length < headers.length) continue;
 
+const source = cols[sourceIndex];
 const date = cols[dateIndex];
 const desc = cols[descIndex];
+const smart = cols[smartIndex];
 const amount = parseFloat(cols[amountIndex]);
-const category = cols[catIndex];
 
 if(!isNaN(amount)) total += amount;
 
 const tr = document.createElement("tr");
 
 tr.innerHTML =
+"<td>"+source+"</td>"+
 "<td>"+date+"</td>"+
 "<td>"+desc+"</td>"+
-"<td>"+category+"</td>"+
+"<td>"+smart+"</td>"+
 "<td>"+amount.toFixed(2)+" ₪</td>";
 
 tableBody.appendChild(tr);
