@@ -1,1 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Finance Dashboard</title>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+font-family:'Assistant',sans-serif;
+background:linear-gradient(135deg,#f7f9fc,#eef3f8);
+padding:30px;
+margin:0;
+}
+
+h1{
+text-align:center;
+margin-bottom:30px;
+}
+
+.cards{
+display:flex;
+gap:20px;
+justify-content:center;
+flex-wrap:wrap;
+margin-bottom:40px;
+}
+
+.card{
+background:white;
+padding:20px;
+border-radius:12px;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
+width:200px;
+text-align:center;
+}
+
+.card h2{
+margin:0;
+font-size:28px;
+color:#4a90e2;
+}
+
+.charts{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:40px;
+}
+
+canvas{
+background:white;
+padding:20px;
+border-radius:12px;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+
+.menu{
+margin-bottom:30px;
+text-align:center;
+}
+
+button{
+padding:10px 18px;
+background:#4a90e2;
+border:none;
+border-radius:6px;
+color:white;
+cursor:pointer;
+margin:5px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>Finance Dashboard</h1>
+
+<div class="menu">
+<button onclick="location.href='bank.html'">Bank</button>
+<button onclick="location.href='credit.html'">Credit</button>
+</div>
+
+<div class="cards">
+
+<div class="card">
+<div>Total Expenses</div>
+<h2 id="expenses">0</h2>
+</div>
+
+<div class="card">
+<div>Total Income</div>
+<h2 id="income">0</h2>
+</div>
+
+</div>
+
+<div class="charts">
+
+<canvas id="categoryChart"></canvas>
+<canvas id="monthChart"></canvas>
+
+</div>
+
+<script>
+
+const csvUrl =
+"https://docs.google.com/spreadsheets/d/1AUDrZ8_dxTfvfxMLaviEAM0cAUcIpmIWJZigI3nC6EQ/gviz/tq?tqx=out:csv&sheet=DATA";
+
+fetch(csvUrl)
+.then(res => res.text())
+.then(data => {
+
+const rows = data.split("\n").slice(1);
+
+let expenses=0;
+let income=0;
+
+let category={};
+let months={};
+
+rows.forEach(r=>{
+
+const cols=r.split(",");
+
+const amount=parseFloat(cols[8]);
+const type=cols[9];
+const cat=cols[4];
+const month=cols[7];
+
+if(type==="expense") expenses+=amount;
+if(type==="income") income+=amount;
+
+if(type==="expense"){
+
+if(!category[cat]) category[cat]=0;
+category[cat]+=amount;
+
+if(!months[month]) months[month]=0;
+months[month]+=amount;
+
+}
+
+});
+
+document.getElementById("expenses").innerText=Math.round(expenses);
+document.getElementById("income").innerText=Math.round(income);
+
+new Chart(document.getElementById("categoryChart"),{
+type:"pie",
+data:{
+labels:Object.keys(category),
+datasets:[{
+data:Object.values(category)
+}]
+}
+});
+
+new Chart(document.getElementById("monthChart"),{
+type:"bar",
+data:{
+labels:Object.keys(months),
+datasets:[{
+label:"Expenses",
+data:Object.values(months)
+}]
+}
+});
+
+});
+
+</script>
+
+</body>
+</html>
