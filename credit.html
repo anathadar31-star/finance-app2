@@ -4,110 +4,102 @@
 <meta charset="UTF-8">
 <title>כרטיסי אשראי</title>
 
-<style>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600&display=swap" rel="stylesheet">
 
+<style>
 body{
-font-family:Arial;
-direction:rtl;
-text-align:center;
-padding:60px;
-background:#f7f7f7;
+  font-family:'Assistant',sans-serif;
+  direction:rtl;
+  text-align:center;
+  padding:30px;
+  margin:0;
+  background:linear-gradient(135deg,#eef2f7,#f7f9fc);
 }
 
 h1{
-margin-bottom:40px;
+  color:#333;
+  margin:10px 0 25px;
+  font-weight:600;
+}
+
+.card{
+  max-width:900px;
+  margin:0 auto;
+  background:#fff;
+  border-radius:12px;
+  box-shadow:0 8px 25px rgba(0,0,0,0.08);
+  overflow:hidden;
+}
+
+.table-wrap{
+  overflow-x:auto;
 }
 
 table{
-margin:auto;
-border-collapse:collapse;
-width:60%;
-background:white;
-}
-
-th,td{
-padding:10px;
-border-bottom:1px solid #ddd;
+  width:100%;
+  border-collapse:collapse;
 }
 
 th{
-background:#4a90e2;
-color:white;
+  background:#4a90e2;
+  color:#fff;
+  padding:14px 10px;
+  font-weight:600;
+  font-size:16px;
+}
+
+td{
+  padding:12px 10px;
+  border-bottom:1px solid #eee;
+  font-size:15px;
+  color:#333;
+}
+
+tr:last-child td{ border-bottom:none; }
+
+.loading, .error{
+  max-width:900px;
+  margin:0 auto 15px;
+  padding:12px 14px;
+  border-radius:10px;
+  font-size:15px;
+}
+
+.loading{
+  background:#fff3cd;
+  color:#7a5c00;
+  border:1px solid #ffeeba;
+}
+
+.error{
+  background:#f8d7da;
+  color:#7a1c23;
+  border:1px solid #f5c6cb;
+}
+
+.footer{
+  margin-top:22px;
 }
 
 button{
-margin-top:30px;
-padding:12px 25px;
-font-size:16px;
-cursor:pointer;
+  background:#4a90e2;
+  border:none;
+  padding:14px 18px;
+  color:white;
+  font-size:16px;
+  border-radius:10px;
+  cursor:pointer;
+  min-width:220px;
 }
 
-</style>
-</head>
-
-<body>
-
-<h1>כרטיסי אשראי</h1>
-
-<table id="creditTable">
-<tr>
-<th>קטגוריה</th>
-<th>סכום</th>
-</tr>
-</table>
-
-<button onclick="location.href='index.html'">
-חזרה לתפריט
-</button>
-
-<script>
-
-const csvUrl =
-"https://docs.google.com/spreadsheets/d/1AUDrZ8_dxTfvfxMLaviEAM0cAUcIpmIWJZigI3nC6EQ/export?format=csv&gid=0";
-
-fetch(csvUrl)
-.then(response => response.text())
-.then(data => {
-
-let rows = data.split("\n");
-rows.shift();
-
-let expensesByCategory = {};
-
-rows.forEach(row => {
-
-let cols = row.split(",");
-
-let amount = parseFloat(cols[9]);
-let category = cols[4];
-
-if(!category || isNaN(amount)) return;
-
-if(!expensesByCategory[category]){
-expensesByCategory[category] = 0;
+button:hover{
+  background:#357ABD;
 }
 
-expensesByCategory[category] += amount;
-
-});
-
-let table = document.getElementById("creditTable");
-
-for(let category in expensesByCategory){
-
-let row = table.insertRow();
-
-let cell1 = row.insertCell(0);
-let cell2 = row.insertCell(1);
-
-cell1.innerText = category;
-cell2.innerText = expensesByCategory[category].toFixed(2) + " ₪";
-
-}
-
-});
-
-</script>
-
-</body>
-</html>
+.small{
+  font-size:13px;
+  color:#666;
+  margin-top:10px;
+  max-width:900px;
+  margin-left:auto;
+  margin-right:auto;
