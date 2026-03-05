@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="he">
+
 <head>
 <meta charset="UTF-8">
-<title>Finance Dashboard</title>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>כרטיסי אשראי</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600&display=swap" rel="stylesheet">
 
@@ -12,166 +11,98 @@
 
 body{
 font-family:'Assistant',sans-serif;
-background:linear-gradient(135deg,#f7f9fc,#eef3f8);
+background:linear-gradient(135deg,#eef2f7,#f7f9fc);
 padding:30px;
 margin:0;
+text-align:center;
 }
 
 h1{
-text-align:center;
+color:#333;
 margin-bottom:30px;
 }
 
-.cards{
-display:flex;
-gap:20px;
-justify-content:center;
-flex-wrap:wrap;
-margin-bottom:40px;
-}
-
-.card{
+table{
+margin:auto;
+border-collapse:collapse;
+width:80%;
+max-width:600px;
 background:white;
-padding:20px;
-border-radius:12px;
-box-shadow:0 4px 10px rgba(0,0,0,0.1);
-width:200px;
-text-align:center;
+box-shadow:0 5px 15px rgba(0,0,0,0.08);
 }
 
-.card h2{
-margin:0;
-font-size:28px;
-color:#4a90e2;
+th,td{
+padding:12px;
+border-bottom:1px solid #eee;
 }
 
-.charts{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:40px;
+th{
+background:#4a90e2;
+color:white;
 }
 
-canvas{
-background:white;
-padding:20px;
-border-radius:12px;
-box-shadow:0 4px 10px rgba(0,0,0,0.1);
-}
-
-.menu{
-margin-bottom:30px;
-text-align:center;
+tr:hover{
+background:#f5f7fb;
 }
 
 button{
-padding:10px 18px;
+margin-top:30px;
 background:#4a90e2;
 border:none;
-border-radius:6px;
+padding:12px 25px;
 color:white;
+font-size:16px;
+border-radius:8px;
 cursor:pointer;
-margin:5px;
+}
+
+button:hover{
+background:#357ABD;
 }
 
 </style>
+
 </head>
 
 <body>
 
-<h1>Finance Dashboard</h1>
+<h1>כרטיסי אשראי</h1>
 
-<div class="menu">
-<button onclick="location.href='bank.html'">Bank</button>
-<button onclick="location.href='credit.html'">Credit</button>
-</div>
+<table id="creditTable">
 
-<div class="cards">
+<tr>
+<th>קטגוריה</th>
+<th>סכום</th>
+</tr>
 
-<div class="card">
-<div>Total Expenses</div>
-<h2 id="expenses">0</h2>
-</div>
+</table>
 
-<div class="card">
-<div>Total Income</div>
-<h2 id="income">0</h2>
-</div>
-
-</div>
-
-<div class="charts">
-
-<canvas id="categoryChart"></canvas>
-<canvas id="monthChart"></canvas>
-
-</div>
+<button onclick="location.href='index.html'">
+חזרה לתפריט
+</button>
 
 <script>
 
-const csvUrl =
-"https://docs.google.com/spreadsheets/d/1AUDrZ8_dxTfvfxMLaviEAM0cAUcIpmIWJZigI3nC6EQ/gviz/tq?tqx=out:csv&sheet=DATA";
-
-fetch(csvUrl)
-.then(res => res.text())
-.then(data => {
-
-const rows = data.split("\n").slice(1);
-
-let expenses=0;
-let income=0;
-
-let category={};
-let months={};
-
-rows.forEach(r=>{
-
-const cols=r.split(",");
-
-const amount=parseFloat(cols[8]);
-const type=cols[9];
-const cat=cols[4];
-const month=cols[7];
-
-if(type==="expense") expenses+=amount;
-if(type==="income") income+=amount;
-
-if(type==="expense"){
-
-if(!category[cat]) category[cat]=0;
-category[cat]+=amount;
-
-if(!months[month]) months[month]=0;
-months[month]+=amount;
-
+let expensesByCategory = {
+"מזון":320,
+"טלפוני":57,
+"רגילה":221,
+"עסקה חכמה":207
 }
 
-});
+let table = document.getElementById("creditTable");
 
-document.getElementById("expenses").innerText=Math.round(expenses);
-document.getElementById("income").innerText=Math.round(income);
+for(let category in expensesByCategory){
 
-new Chart(document.getElementById("categoryChart"),{
-type:"pie",
-data:{
-labels:Object.keys(category),
-datasets:[{
-data:Object.values(category)
-}]
+let row = table.insertRow();
+
+let cell1 = row.insertCell(0);
+let cell2 = row.insertCell(1);
+
+cell1.innerText = category;
+cell2.innerText = expensesByCategory[category] + " ₪";
+
 }
-});
-
-new Chart(document.getElementById("monthChart"),{
-type:"bar",
-data:{
-labels:Object.keys(months),
-datasets:[{
-label:"Expenses",
-data:Object.values(months)
-}]
-}
-});
-
-});
 
 </script>
 
