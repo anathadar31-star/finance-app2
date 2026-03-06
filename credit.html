@@ -329,7 +329,7 @@ statusText.textContent = "טוען נתונים מגיליון Google Sheets..."
 refreshBtn.disabled = true;
 
 try{
-const response = await fetch(GOOGLE_SHEETS_CSV_URL, { cache: "no-store" });
+const response = await fetch(GOOGLE_SHEETS_CSV_URL);
 if(!response.ok){
 throw new Error(`HTTP ${response.status}`);
 }
