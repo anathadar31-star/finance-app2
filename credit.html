@@ -113,6 +113,7 @@ color:#243447;
 
 <script>
 const GOOGLE_SHEETS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRlDvXrg9365CzpvYNG8l3jS9_vr_B8P7QD6J6vQhPeymiynDhQGyBL_mDfsHBTFhirVcjXSmCymXXO/pub?output=csv";
+const GOOGLE_SHEETS_SOURCE_NAME = "Google Sheets";
 
 const statusText = document.getElementById("status");
 const categoryFilter = document.getElementById("categoryFilter");
@@ -305,7 +306,7 @@ amount: toAmount(cols[amountIndex])
 categoryFilter.value = "all";
 updateCategoryFilter(allRows);
 applyFilter();
-statusText.textContent = `נטענו ${allRows.length} תנועות מ-Google Sheets.`;
+statusText.textContent = `נטענו ${allRows.length} תנועות מ-${GOOGLE_SHEETS_SOURCE_NAME}.`;
 }
 
 function loadDataFromCsvText(csvText, sourceName){
@@ -325,7 +326,7 @@ clearDataWithError("שגיאה: חסר קישור Google Sheets בקוד (GOOGLE
 return;
 }
 
-statusText.textContent = "טוען נתונים מגיליון Google Sheets...";
+statusText.textContent = `טוען נתונים מ-${GOOGLE_SHEETS_SOURCE_NAME}...`;
 refreshBtn.disabled = true;
 
 try{
@@ -335,9 +336,9 @@ throw new Error(`HTTP ${response.status}`);
 }
 
 const csvText = await response.text();
-loadDataFromCsvText(csvText, "Google Sheets");
+loadDataFromCsvText(csvText, GOOGLE_SHEETS_SOURCE_NAME);
 }catch(error){
-clearDataWithError("שגיאה בטעינת הנתונים מ-Google Sheets. ניתן לטעון קובץ CSV מקומי כגיבוי.");
+clearDataWithError(`שגיאה בטעינת הנתונים מ-${GOOGLE_SHEETS_SOURCE_NAME}. ניתן לטעון קובץ CSV מקומי כגיבוי.`);
 console.error(error);
 }finally{
 refreshBtn.disabled = false;
