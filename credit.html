@@ -84,6 +84,8 @@ color:#243447;
 <h1>כרטיסי אשראי</h1>
 <div class="toolbar">
 <button id="refreshBtn">רענן נתונים</button>
+<button id="uploadBtn">טען קובץ CSV מקומי</button>
+<input type="file" id="csvFile" accept=".csv,.txt,text/csv,text/plain" style="display:none">
 <select id="categoryFilter" disabled>
 <option value="all">כל הקטגוריות</option>
 </select>
@@ -110,16 +112,15 @@ color:#243447;
 <div class="summary" id="total"></div>
 
 <script>
-// TODO: הדבקי כאן את קישור ה-CSV הציבורי של Google Sheets
-// דוגמה:
-// const GOOGLE_SHEETS_CSV_URL = "https://docs.google.com/spreadsheets/d/.../export?format=csv&gid=0";
-const GOOGLE_SHEETS_CSV_URL = "";
+const GOOGLE_SHEETS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRlDvXrg9365CzpvYNG8l3jS9_vr_B8P7QD6J6vQhPeymiynDhQGyBL_mDfsHBTFhirVcjXSmCymXXO/pub?output=csv";
 
 const statusText = document.getElementById("status");
 const categoryFilter = document.getElementById("categoryFilter");
 const tableBody = document.querySelector("#table tbody");
 const totalBox = document.getElementById("total");
 const refreshBtn = document.getElementById("refreshBtn");
+const uploadBtn = document.getElementById("uploadBtn");
+const csvFileInput = document.getElementById("csvFile");
 let allRows = [];
 
 function normalizeHeader(value){
@@ -307,6 +308,17 @@ applyFilter();
 statusText.textContent = `נטענו ${allRows.length} תנועות מ-Google Sheets.`;
 }
 
+function loadDataFromCsvText(csvText, sourceName){
+const rawText = String(csvText || "").replace(/^\uFEFF/, "");
+const delimiter = detectDelimiter(rawText);
+const rows = parseCsv(rawText, delimiter);
+mapRowsToTransactions(rows);
+
+if(allRows.length > 0){
+statusText.textContent = `נטענו ${allRows.length} תנועות מתוך ${sourceName}.`;
+}
+}
+
 async function loadDataFromGoogleSheets(){
 if(!GOOGLE_SHEETS_CSV_URL){
 clearDataWithError("שגיאה: חסר קישור Google Sheets בקוד (GOOGLE_SHEETS_CSV_URL).");
@@ -322,12 +334,10 @@ if(!response.ok){
 throw new Error(`HTTP ${response.status}`);
 }
 
-const rawText = (await response.text()).replace(/^\uFEFF/, "");
-const delimiter = detectDelimiter(rawText);
-const rows = parseCsv(rawText, delimiter);
-mapRowsToTransactions(rows);
+const csvText = await response.text();
+loadDataFromCsvText(csvText, "Google Sheets");
 }catch(error){
-clearDataWithError("שגיאה בטעינת הנתונים מ-Google Sheets. בדקי שהקישור ציבורי ותקין.");
+clearDataWithError("שגיאה בטעינת הנתונים מ-Google Sheets. ניתן לטעון קובץ CSV מקומי כגיבוי.");
 console.error(error);
 }finally{
 refreshBtn.disabled = false;
@@ -336,6 +346,16 @@ refreshBtn.disabled = false;
 
 categoryFilter.addEventListener("change", applyFilter);
 refreshBtn.addEventListener("click", loadDataFromGoogleSheets);
+uploadBtn.addEventListener("click", () => csvFileInput.click());
+csvFileInput.addEventListener("change", (event) => {
+const file = event.target.files[0];
+if(!file) return;
+
+const reader = new FileReader();
+reader.onload = (e) => loadDataFromCsvText(e.target.result, `קובץ מקומי (${file.name})`);
+reader.onerror = () => clearDataWithError("שגיאה בקריאת הקובץ המקומי.");
+reader.readAsText(file, "utf-8");
+});
 window.addEventListener("DOMContentLoaded", loadDataFromGoogleSheets);
 </script>
 </body>
