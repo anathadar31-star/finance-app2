@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>בדיקת גיליון מאוחד</title>
+<style>
+body{font-family:Arial,sans-serif;direction:rtl;background:#f5f7fb;margin:0;padding:20px;text-align:center;}
+h1{margin-bottom:8px;color:#243447;}
+#status{color:#5a6878;margin-bottom:16px;}
+.table-wrap{max-width:1200px;margin:0 auto;overflow:auto;background:#fff;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.08);}
+table{width:100%;border-collapse:collapse;min-width:700px;}
+th,td{padding:10px;border-bottom:1px solid #eceff3;text-align:right;white-space:nowrap;}
+th{background:#4a90e2;color:#fff;position:sticky;top:0;}
+tr:hover td{background:#f8fbff;}
+</style>
+</head>
+<body>
+<h1>גיליון עסקאות מאוחד (בדיקה)</h1>
+<p id="status">טוען נתונים...</p>
+
+<div class="table-wrap">
+<table id="masterTable">
+<thead><tr id="headerRow"></tr></thead>
+<tbody id="tableBody"></tbody>
+</table>
+</div>
+
+<script>
+const MASTER_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRDbRTWi0xlhYtkVQ3J2O0kWaWj5GgdF3QoraA60mIDAmzA2tiu_SwMJjA0u8i-qsEPpkLeFzJbgJwl/pub?output=csv";
+
+function parseCsv(text){
+const rows = [];
+let row = [];
+let cell = "";
+let inQuotes = false;
+
+for(let i=0;i<text.length;i++){
+const ch = text[i];
+if(ch === '"'){
+if(inQuotes && text[i+1] === '"'){
+cell += '"';
+i++;
+}else{
+inQuotes = !inQuotes;
+}
+continue;
+}
+if(ch === "," && !inQuotes){
+row.push(cell.trim());
+cell = "";
+continue;
+}
+if((ch === "\n" || ch === "\r") && !inQuotes){
+if(ch === "\r" && text[i+1] === "\n") i++;
+row.push(cell.trim());
+if(row.some(v => v !== "")) rows.push(row);
+row = [];
+cell = "";
+continue;
+}
+cell += ch;
+}
+if(cell.length || row.length){
+row.push(cell.trim());
+if(row.some(v => v !== "")) rows.push(row);
+}
+return rows;
+}
+
+function renderTable(rows){
+const headerRow = document.getElementById("headerRow");
+const tableBody = document.getElementById("tableBody");
+headerRow.innerHTML = "";
+tableBody.innerHTML = "";
+
+if(rows.length < 2){
+document.getElementById("status").textContent = "לא נמצאו נתונים להצגה בגיליון.";
+return;
+}
+
+const headers = rows[0];
+headers.forEach(h => {
+const th = document.createElement("th");
+th.textContent = h || "-";
+headerRow.appendChild(th);
+});
+
+rows.slice(1).forEach(r => {
+const tr = document.createElement("tr");
+headers.forEach((_, i) => {
+const td = document.createElement("td");
+td.textContent = r[i] || "";
+tr.appendChild(td);
+});
+tableBody.appendChild(tr);
+});
+
+document.getElementById("status").textContent = `נטענו ${rows.length - 1} שורות מהגיליון המאוחד.`;
+}
+
+async function loadMasterSheet(){
+const status = document.getElementById("status");
+status.textContent = "טוען נתונים מהגיליון המאוחד...";
+try{
+const response = await fetch(MASTER_CSV_URL);
+if(!response.ok) throw new Error(`HTTP ${response.status}`);
+const csv = (await response.text()).replace(/^\uFEFF/, "");
+const rows = parseCsv(csv);
+renderTable(rows);
+}catch(error){
+status.textContent = "שגיאה בטעינת הגיליון המאוחד. בדקי שהקישור ציבורי ותקין.";
+console.error(error);
+}
+}
+
+window.addEventListener("DOMContentLoaded", loadMasterSheet);
+</script>
+</body>
+</html>
