@@ -1,43 +1,58 @@
 <!DOCTYPE html>
 <html lang="he">
-
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>כרטיסי אשראי</title>
-
 <style>
-
 body{
-font-family:Arial;
+font-family:Arial,sans-serif;
 direction:rtl;
 text-align:center;
 background:#f4f6f9;
 margin:0;
-padding:40px;
+padding:24px;
 }
 
-h1{
-margin-bottom:25px;
+h1{ margin-bottom:18px; }
+
+.toolbar{
+display:flex;
+flex-wrap:wrap;
+gap:12px;
+justify-content:center;
+align-items:center;
+margin-bottom:16px;
 }
 
-button{
+button,select{
 background:#4a90e2;
 border:none;
-padding:12px 20px;
+padding:10px 16px;
 color:white;
-font-size:16px;
+font-size:15px;
 border-radius:8px;
 cursor:pointer;
 }
 
-button:hover{
-background:#357ABD;
+select{
+background:white;
+color:#243447;
+border:1px solid #cfd8e3;
+}
+
+button:hover{ background:#357ABD; }
+
+.table-wrap{
+overflow:auto;
+max-width:1100px;
+margin:0 auto;
 }
 
 table{
-margin:30px auto;
+margin:16px auto;
 border-collapse:collapse;
-width:90%;
+width:100%;
 background:white;
 box-shadow:0 2px 10px rgba(0,0,0,0.1);
 }
@@ -46,6 +61,7 @@ th{
 background:#4a90e2;
 color:white;
 padding:12px;
+white-space:nowrap;
 }
 
 td{
@@ -53,28 +69,31 @@ padding:10px;
 border-bottom:1px solid #eee;
 }
 
+.amount{ font-weight:700; }
 .summary{
-margin-top:20px;
-font-size:18px;
+margin-top:14px;
+font-size:17px;
 font-weight:bold;
+color:#243447;
 }
-
+.small{font-size:14px;color:#5a6878;}
 </style>
-
 </head>
-
 <body>
 
 <h1>כרטיסי אשראי</h1>
+<div class="toolbar">
+<button id="refreshBtn">רענן נתונים</button>
+<select id="categoryFilter" disabled>
+<option value="all">כל הקטגוריות</option>
+</select>
+<button onclick="location.href='index.html'">חזרה לתפריט</button>
+</div>
 
-<button onclick="document.getElementById('csvFile').click()">
-בחר קובץ CSV
-</button>
+<p class="small" id="status">טוען נתונים מגיליון Google Sheets...</p>
 
-<input type="file" id="csvFile" accept=".csv" style="display:none">
-
+<div class="table-wrap">
 <table id="table">
-
 <thead>
 <tr>
 <th>כרטיס</th>
@@ -84,65 +103,240 @@ font-weight:bold;
 <th>סכום</th>
 </tr>
 </thead>
-
 <tbody></tbody>
-
 </table>
+</div>
 
 <div class="summary" id="total"></div>
 
-<br>
-
-<button onclick="location.href='index.html'">
-חזרה לתפריט
-</button>
-
-
 <script>
+// TODO: הדבקי כאן את קישור ה-CSV הציבורי של Google Sheets
+// דוגמה:
+// const GOOGLE_SHEETS_CSV_URL = "https://docs.google.com/spreadsheets/d/.../export?format=csv&gid=0";
+const GOOGLE_SHEETS_CSV_URL = "";
 
-function findColumn(headers,name){
+const statusText = document.getElementById("status");
+const categoryFilter = document.getElementById("categoryFilter");
+const tableBody = document.querySelector("#table tbody");
+const totalBox = document.getElementById("total");
+const refreshBtn = document.getElementById("refreshBtn");
+let allRows = [];
 
-name=name.toLowerCase();
-
-for(let i=0;i<headers.length;i++){
-
-let h=headers[i].toLowerCase().replace("_","").replace(" ","");
-
-if(h.includes(name)) return i;
-
+function normalizeHeader(value){
+return value.toLowerCase().replace(/[_\s"']/g, "");
 }
 
+function findColumn(headers, names){
+for(let i = 0; i < headers.length; i++){
+const normalized = normalizeHeader(headers[i]);
+if(names.some(name => normalized.includes(name))) return i;
+}
 return -1;
-
 }
 
-document.getElementById("csvFile").addEventListener("change", function(event){
+function parseCsv(text, delimiter){
+const rows = [];
+let row = [];
+let value = "";
+let inQuotes = false;
 
-const file = event.target.files[0];
-const reader = new FileReader();
+for(let i = 0; i < text.length; i++){
+const ch = text[i];
 
-reader.onload = function(e){
+if(ch === '"'){
+if(inQuotes && text[i + 1] === '"'){
+value += '"';
+i += 1;
+}else{
+inQuotes = !inQuotes;
+}
+continue;
+}
 
-const text = e.target.result.trim();
-const rows = text.split("\n");
+if(ch === delimiter && !inQuotes){
+row.push(value.trim());
+value = "";
+continue;
+}
 
-const headers = rows[0].split(",");
+if((ch === "\n" || ch === "\r") && !inQuotes){
+if(ch === "\r" && text[i + 1] === "\n") i += 1;
+row.push(value.trim());
+if(row.some(cell => cell !== "")) rows.push(row);
+row = [];
+value = "";
+continue;
+}
 
-const dateIndex = findColumn(headers,"date");
-const descIndex = findColumn(headers,"description");
-const amountIndex = findColumn(headers,"amount");
-const smartIndex = findColumn(headers,"smartcategory");
-const sourceIndex = findColumn(headers,"source");
+value += ch;
+}
 
-let data=[];
+if(value.length > 0 || row.length > 0){
+row.push(value.trim());
+if(row.some(cell => cell !== "")) rows.push(row);
+}
 
-for(let i=1;i<rows.length;i++){
+return rows;
+}
 
-const cols = rows[i].split(",");
+function detectDelimiter(text){
+const firstLine = text.split(/\r?\n/, 1)[0] || "";
+const commaCount = (firstLine.match(/,/g) || []).length;
+const semicolonCount = (firstLine.match(/;/g) || []).length;
+return semicolonCount > commaCount ? ";" : ",";
+}
 
-if(cols.length < headers.length) continue;
+function toAmount(value){
+let cleaned = String(value || "").trim();
+if(!cleaned) return 0;
 
-data.push({
+const negativeByParens = cleaned.startsWith("(") && cleaned.endsWith(")");
+cleaned = cleaned.replace(/[₪\s]/g, "").replace(/[()]/g, "");
 
-source:cols[sourceIndex],
-date:cols[dateIndex
+if(cleaned.includes(",") && cleaned.includes(".")){
+cleaned = cleaned.replace(/,/g, "");
+}else if(cleaned.includes(",")){
+cleaned = cleaned.replace(/,/g, ".");
+}
+
+cleaned = cleaned.replace(/[^0-9.-]/g, "");
+let numeric = Number(cleaned);
+if(!Number.isFinite(numeric)) numeric = 0;
+if(negativeByParens) numeric = -Math.abs(numeric);
+return numeric;
+}
+
+function formatAmount(value){
+return value.toLocaleString("he-IL", { style:"currency", currency:"ILS" });
+}
+
+function updateCategoryFilter(data){
+const categories = [...new Set(data.map(row => row.smartCategory).filter(Boolean))].sort();
+categoryFilter.innerHTML = '<option value="all">כל הקטגוריות</option>';
+
+categories.forEach(category => {
+const option = document.createElement("option");
+option.value = category;
+option.textContent = category;
+categoryFilter.appendChild(option);
+});
+
+categoryFilter.disabled = false;
+}
+
+function renderTable(data){
+tableBody.innerHTML = "";
+
+if(data.length === 0){
+const tr = document.createElement("tr");
+const td = document.createElement("td");
+td.colSpan = 5;
+td.textContent = "לא נמצאו תנועות לתצוגה.";
+tr.appendChild(td);
+tableBody.appendChild(tr);
+totalBox.textContent = "";
+return;
+}
+
+let total = 0;
+
+for(const row of data){
+const tr = document.createElement("tr");
+const values = [row.source, row.date, row.description, row.smartCategory, formatAmount(row.amount)];
+values.forEach((value, index) => {
+const td = document.createElement("td");
+td.textContent = value || "-";
+if(index === 4) td.className = "amount";
+tr.appendChild(td);
+});
+tableBody.appendChild(tr);
+total += row.amount;
+}
+
+totalBox.textContent = `סה"כ ${data.length} חיובים: ${formatAmount(total)}`;
+}
+
+function applyFilter(){
+const selected = categoryFilter.value;
+const filtered = selected === "all"
+? allRows
+: allRows.filter(row => row.smartCategory === selected);
+renderTable(filtered);
+}
+
+function clearDataWithError(message){
+allRows = [];
+categoryFilter.disabled = true;
+categoryFilter.value = "all";
+categoryFilter.innerHTML = '<option value="all">כל הקטגוריות</option>';
+renderTable([]);
+statusText.textContent = message;
+}
+
+function mapRowsToTransactions(rows){
+if(rows.length < 2){
+clearDataWithError("שגיאה: לא נמצאו נתונים בגיליון.");
+return;
+}
+
+const headers = rows[0];
+const sourceIndex = findColumn(headers, ["source", "card", "כרטיס", "מנפיק"]);
+const dateIndex = findColumn(headers, ["date", "transactiondate", "תאריך"]);
+const descIndex = findColumn(headers, ["description", "desc", "details", "תיאור", "עסקה"]);
+const smartIndex = findColumn(headers, ["smartcategory", "category", "קטגור"]);
+const amountIndex = findColumn(headers, ["amount", "sum", "charge", "debit", "סכום", "חיוב"]);
+
+if([dateIndex, descIndex, amountIndex].includes(-1)){
+clearDataWithError("שגיאה: לא נמצאו עמודות חובה בגיליון (תאריך/תיאור/סכום).");
+return;
+}
+
+allRows = rows.slice(1)
+.filter(cols => cols.some(cell => cell && cell.trim() !== ""))
+.map(cols => ({
+source: sourceIndex > -1 ? (cols[sourceIndex] || "כרטיס אשראי") : "כרטיס אשראי",
+date: cols[dateIndex] || "",
+description: cols[descIndex] || "",
+smartCategory: smartIndex > -1 && cols[smartIndex] ? cols[smartIndex] : "ללא קטגוריה",
+amount: toAmount(cols[amountIndex])
+}));
+
+categoryFilter.value = "all";
+updateCategoryFilter(allRows);
+applyFilter();
+statusText.textContent = `נטענו ${allRows.length} תנועות מ-Google Sheets.`;
+}
+
+async function loadDataFromGoogleSheets(){
+if(!GOOGLE_SHEETS_CSV_URL){
+clearDataWithError("שגיאה: חסר קישור Google Sheets בקוד (GOOGLE_SHEETS_CSV_URL).");
+return;
+}
+
+statusText.textContent = "טוען נתונים מגיליון Google Sheets...";
+refreshBtn.disabled = true;
+
+try{
+const response = await fetch(GOOGLE_SHEETS_CSV_URL, { cache: "no-store" });
+if(!response.ok){
+throw new Error(`HTTP ${response.status}`);
+}
+
+const rawText = (await response.text()).replace(/^\uFEFF/, "");
+const delimiter = detectDelimiter(rawText);
+const rows = parseCsv(rawText, delimiter);
+mapRowsToTransactions(rows);
+}catch(error){
+clearDataWithError("שגיאה בטעינת הנתונים מ-Google Sheets. בדקי שהקישור ציבורי ותקין.");
+console.error(error);
+}finally{
+refreshBtn.disabled = false;
+}
+}
+
+categoryFilter.addEventListener("change", applyFilter);
+refreshBtn.addEventListener("click", loadDataFromGoogleSheets);
+window.addEventListener("DOMContentLoaded", loadDataFromGoogleSheets);
+</script>
+</body>
+</html>
